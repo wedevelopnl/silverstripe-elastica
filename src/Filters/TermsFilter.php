@@ -45,13 +45,16 @@ class TermsFilter extends Filter
 
     public function getElasticaQuery()
     {
-        $values = $this->getFilterField()->Value();
-        $values = is_array($values) ? $values : [];
+        $value = $this->getFilterField()->Value();
 
-        $this->extend('updateValues', $values);
+        if (in_array($this->Type, [self::TYPE_CHECKBOX, self::TYPE_RADIO])) {
+            $value = is_array($value) ? $value : [];
+        }
 
-        if ($values) {
-            return new \Elastica\Query\Terms($this->FieldName, $values);
+        $this->extend('updateValue', $value);
+
+        if ($value) {
+            return new \Elastica\Query\Terms($this->FieldName, $value);
         }
     }
 
