@@ -1,0 +1,7 @@
+nl:
+  TheWebmen\Elastica\Forms\GeoDistanceFilterField:
+    SEARCH_TITLE: Locatie
+    DISTANCE_TITLE: Afstand
+  TheWebmen\Elastica\Forms\RangeFilterField:
+    FROM_TITLE: 'Van'
+    TO_TITLE: 'Tot'
