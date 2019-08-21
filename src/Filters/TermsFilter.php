@@ -14,6 +14,7 @@ use TheWebmen\Elastica\Forms\TermsFilterOptionsetField;
 
 /**
  * @property string Type
+ * @property string Placeholder
  * @method TermsFilterField getFilterField
  */
 class TermsFilter extends Filter
@@ -27,7 +28,8 @@ class TermsFilter extends Filter
     private static $table_name = 'TheWebmen_Elastica_Filter_TermsFilter';
 
     private static $db = [
-        'Type' => 'Varchar'
+        'Type' => 'Varchar',
+        'Placeholder' => 'Varchar'
     ];
 
     public function getCMSFields()
@@ -67,7 +69,8 @@ class TermsFilter extends Filter
     {
         switch ($this->Type) {
             case self::TYPE_DROPDOWN:
-                $field = TermsFilterDropdownField::create($this->Name, $this->Title)->setHasEmptyDefault(true);
+                $field = TermsFilterDropdownField::create($this->Name, $this->Title)
+                    ->setEmptyString($this->Placeholder);
                 break;
             case self::TYPE_RADIO:
                 $field = TermsFilterOptionsetField::create($this->Name, $this->Title);
