@@ -54,17 +54,20 @@ class TermsFilter extends Filter
         $this->extend('updateValue', $value);
 
         if (is_array($value)) {
-            return new \Elastica\Query\Terms($this->FieldName, $value);
+            $query = new \Elastica\Query\Terms($this->FieldName, $value);
         } else {
-            return new \Elastica\Query\Term($this->FieldName, $value);
+            $query = new \Elastica\Query\Term();
+            $query->setTerm($this->FieldName, $value);
         }
+
+        return $query;
     }
 
     public function generateFilterField()
     {
         switch ($this->Type) {
             case self::TYPE_DROPDOWN:
-                $field = TermsFilterDropdownField::create($this->Name, $this->Title);
+                $field = TermsFilterDropdownField::create($this->Name, $this->Title)->setHasEmptyDefault(true);
                 break;
             case self::TYPE_RADIO:
                 $field = TermsFilterOptionsetField::create($this->Name, $this->Title);
