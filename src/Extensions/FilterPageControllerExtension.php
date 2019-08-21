@@ -46,7 +46,7 @@ class FilterPageControllerExtension extends Extension
     public function getFilters()
     {
         if (!$this->filters) {
-            $this->filters = $this->owner->Filters()->toArray();
+            $this->filters = $this->owner->data()->Filters()->toArray();
         }
 
         return $this->filters;
@@ -82,7 +82,7 @@ class FilterPageControllerExtension extends Extension
             $query = new \Elastica\Query();
             $bool = new \Elastica\Query\BoolQuery();
 
-            foreach ($this->filters as $filter) {
+            foreach ($this->getFilters() as $filter) {
                 $filterQuery = $filter->getElasticaQuery();
 
                 if ($filterQuery) {
