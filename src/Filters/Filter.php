@@ -70,7 +70,12 @@ class Filter extends DataObject
     {
         $result = parent::validate();
 
-        if (Filter::get()->filter(['Name' => $this->Name, 'PageID' => $this->PageID, 'ID:not' => $this->ID])->count() > 0) {
+        $filters = Filter::get()->filter([
+            'Name' => $this->Name,
+            'PageID' => $this->PageID,
+            'ID:not' => $this->ID
+        ]);
+        if ($filters->count() > 0) {
             $result->addError('Name already exists');
         }
 

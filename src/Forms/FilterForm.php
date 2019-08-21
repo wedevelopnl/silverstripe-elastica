@@ -52,7 +52,12 @@ class FilterForm extends Form
         /** @var Filter $filter */
         foreach ($this->getController()->getFilters() as $filter) {
             if ($filter->getAggregation($this->getController()->getFilters())) {
-                $filter->addAggregation($this->getController()->getList()->getResultSet()->getAggregation($filter->ID));
+                $aggregation = $this->getController()
+                    ->getFilterList()
+                    ->getResultSet()
+                    ->getAggregation($filter->ID);
+                
+                $filter->addAggregation($aggregation);
             }
         }
 

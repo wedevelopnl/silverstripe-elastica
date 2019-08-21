@@ -4,7 +4,7 @@ namespace TheWebmen\Elastica\Extensions;
 
 use SilverStripe\Control\RequestHandler;
 use SilverStripe\Core\Extension;
-use SilverStripe\ORM\PaginatedList;
+use SilverStripe\ORM\PaginatedFilterList;
 use TheWebmen\Elastica\Filters\Filter;
 use TheWebmen\Elastica\Forms\FilterForm;
 use TheWebmen\Elastica\Model\FacetIndexItemsList;
@@ -63,20 +63,20 @@ class FilterPageControllerExtension extends Extension
         return $form;
     }
 
-    public function PaginatedList()
+    public function PaginatedFilterList()
     {
-        $list = new PaginatedList($this->getList());
+        $list = new PaginatedFilterList($this->getFilterList());
         $list->setPageLength($this->owner->config()->get('items_per_page'));
         $list->setRequest($this->owner->getRequest());
 
-        if (method_exists($this->owner, 'updatePaginatedList')) {
-            $this->owner->updatePaginatedList($list);
+        if (method_exists($this->owner, 'updatePaginatedFilterList')) {
+            $this->owner->updatePaginatedFilterList($list);
         }
 
         return $list;
     }
 
-    public function getList()
+    public function getFilterList()
     {
         if (!$this->list) {
             $query = new \Elastica\Query();

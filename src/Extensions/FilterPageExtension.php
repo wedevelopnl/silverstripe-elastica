@@ -33,8 +33,12 @@ class FilterPageExtension extends DataExtension
             ->removeComponentsByType(GridFieldAddNewButton::class)
             ->addComponent(new GridFieldAddNewMultiClass());
 
-        $filtersGridField = new GridField('Filters', 'Filters', $this->owner->Filters(), $filtersGridFieldConfig);
-        $fields->addFieldToTab('Root.Elastica', $filtersGridField);
+        $fields->addFieldToTab('Root.Elastica', GridField::create(
+            'Filters',
+            'Filters',
+            $this->owner->Filters(),
+            $filtersGridFieldConfig
+        ));
     }
 
     public function getAvailableElasticaFields()

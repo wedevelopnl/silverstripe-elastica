@@ -20,7 +20,12 @@ class RangeFilter extends Filter
         $query = null;
         $value = $this->getFilterField()->Value();
 
-        if (is_array($value) && isset($value['From']) && isset($value['To']) && $value['From'] != '' && $value['To'] != '') {
+        if (
+            is_array($value) &&
+            isset($value['From']) && 
+            isset($value['To']) && 
+            $value['From'] != '' && $value['To'] != ''
+        ) {
             $query = new \Elastica\Query\Range($this->FieldName, [
                 'gte' => (int)$value['From'],
                 'lte' => (int)$value['To'],
