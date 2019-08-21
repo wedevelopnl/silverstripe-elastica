@@ -53,8 +53,10 @@ class TermsFilter extends Filter
 
         $this->extend('updateValue', $value);
 
-        if ($value) {
+        if (is_array($value)) {
             return new \Elastica\Query\Terms($this->FieldName, $value);
+        } else {
+            return new \Elastica\Query\Term($this->FieldName, $value);
         }
     }
 
