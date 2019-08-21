@@ -8,7 +8,7 @@
     "silverstripe/framework": "^4",
     "ruflin/elastica": "^6.1",
     "symbiote/silverstripe-gridfieldextensions": "^3.2",
-    "silverstripe/tagfield": "^2.3"
+    "silverstripe/tagfield": "2.3.0"
   },
   "autoload": {
     "psr-4": {
