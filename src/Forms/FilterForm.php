@@ -27,9 +27,10 @@ class FilterForm extends Form
 {
     public function __construct(RequestHandler $controller, $name = self::DEFAULT_NAME)
     {
-        parent::__construct($controller, $name);
-
         $fields = new FieldList();
+        $actions = new FieldList();
+
+        parent::__construct($controller, $name, $fields, $actions);
 
         $sorts = array_keys($this->getController()->config()->get('sorts'));
         if ($sorts) {
@@ -45,8 +46,6 @@ class FilterForm extends Form
             }
         }
 
-        $this->setFields($fields);
-
         $this->loadDataFrom($this->getController()->getRequest()->getVars());
 
         /** @var Filter $filter */
@@ -56,15 +55,12 @@ class FilterForm extends Form
                     ->getFilterList()
                     ->getResultSet()
                     ->getAggregation($filter->ID);
-                
+
                 $filter->addAggregation($aggregation);
             }
         }
 
-        $actions = new FieldList();
         $actions->push(FormAction::create('', 'Zoeken')->setAttribute('name', ''));
-
-        $this->setActions($actions);
 
         $this->setFormMethod('GET');
 
