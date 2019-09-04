@@ -63,8 +63,10 @@ class ElasticaService
     {
         echo "Create index\n";
         $this->index->create([
-            'number_of_shards' => self::config()->get('number_of_shards'),
-            'number_of_replicas' => self::config()->get('number_of_replicas'),
+            'settings' => [
+                'number_of_shards' => self::config()->get('number_of_shards'),
+                'number_of_replicas' => self::config()->get('number_of_replicas'),
+            ]
         ], true);
         echo "Done\n";
 
@@ -81,7 +83,7 @@ class ElasticaService
             $mapping->setType($type);
 
             echo "Create mapping\n";
-            $mapping->send();
+            $mapping->send(['include_type_name' => true]);
             echo "Done\n";
 
             echo "Create documents\n";
