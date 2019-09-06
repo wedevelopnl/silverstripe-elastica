@@ -22,17 +22,6 @@ class FilterPageControllerExtension extends Extension
         'FilterForm'
     ];
 
-    private static $sorts = [
-        'Relevance' => [
-            'FieldName' => 'ID',
-            'Direction' => 'asc',
-        ],
-        'Title ascending' => [
-            'FieldName' => 'Title',
-            'Direction' => 'asc',
-        ]
-    ];
-
     /**
      * @var FacetIndexItemsList
      */
