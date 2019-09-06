@@ -46,6 +46,8 @@ class FilterForm extends Form
             }
         }
 
+        $this->setFields($fields);
+
         $this->loadDataFrom($this->getController()->getRequest()->getVars());
 
         /** @var Filter $filter */
@@ -61,6 +63,7 @@ class FilterForm extends Form
         }
 
         $actions->push(FormAction::create('', 'Zoeken')->setAttribute('name', ''));
+        $this->setActions($actions);
 
         $this->setFormMethod('GET');
 
