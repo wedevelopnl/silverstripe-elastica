@@ -4,10 +4,10 @@ namespace TheWebmen\Elastica\Extensions;
 
 use SilverStripe\Control\RequestHandler;
 use SilverStripe\Core\Extension;
-use SilverStripe\ORM\PaginatedList;
 use TheWebmen\Elastica\Filters\Filter;
 use TheWebmen\Elastica\Forms\FilterForm;
 use TheWebmen\Elastica\Model\FacetIndexItemsList;
+use TheWebmen\Elastica\Model\PaginatedList;
 use TheWebmen\Elastica\Services\ElasticaService;
 
 /**

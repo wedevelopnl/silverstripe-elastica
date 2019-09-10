@@ -126,9 +126,18 @@ class FacetIndexItemsList extends ViewableData implements SS_List, Limitable
      */
     public function count()
     {
-        return $this->getResultSet()->getTotalHits();
+        return $this->getResultSet()->count();
     }
 
+    /**
+     * @return int
+     */
+    public function getTotalItems()
+    {
+        $data = $this->getResultSet()->getResponse()->getData();
+
+        return (int) ($data['hits']['total']['value'] ?? 0);
+    }
 
     public function first()
     {
