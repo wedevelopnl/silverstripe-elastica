@@ -8,6 +8,7 @@ use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\ORM\DataObject;
+use SilverStripe\Versioned\Versioned;
 use TheWebmen\Elastica\Extensions\FilterIndexDataObjectItemExtension;
 use TheWebmen\Elastica\Extensions\FilterIndexItemExtension;
 use TheWebmen\Elastica\Extensions\FilterIndexPageItemExtension;
@@ -61,6 +62,8 @@ class ElasticaService
 
     public function reindex()
     {
+        Versioned::set_reading_mode(Versioned::LIVE);
+        
         echo "Create index\n";
         $this->index->create([
             'settings' => [
