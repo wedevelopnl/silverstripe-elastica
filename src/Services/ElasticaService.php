@@ -97,6 +97,8 @@ class ElasticaService
             }
             echo "Done\n";
         }
+        
+        $this->extend('updateReindexDocuments', $documents);
 
         echo "Add documents\n";
         if (count($documents) > 0) {
