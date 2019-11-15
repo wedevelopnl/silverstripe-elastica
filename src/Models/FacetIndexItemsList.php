@@ -136,7 +136,7 @@ class FacetIndexItemsList extends ViewableData implements SS_List, Limitable
     {
         $data = $this->getResultSet()->getResponse()->getData();
 
-        return (int) ($data['hits']['total']['value'] ?? 0);
+        return (int) ($data['hits']['total'] ?? 0);
     }
 
     public function first()
