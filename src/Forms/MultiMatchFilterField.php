@@ -4,6 +4,7 @@ namespace TheWebmen\Elastica\Forms;
 
 use Elastica\Suggest;
 use SilverStripe\Control\HTTPResponse;
+use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Forms\TextField;
 use TheWebmen\Elastica\Filters\MultiMatchFilter;
 use TheWebmen\Elastica\Interfaces\FilterFieldInterface;
@@ -31,7 +32,10 @@ class MultiMatchFilterField extends TextField implements FilterFieldInterface
     public function autocomplete()
     {
         $query = $this->getAutocompleteQuery();
-        $response = ElasticaService::singleton()->search($query);
+
+        /** @var ElasticaService $elasticaService */
+        $elasticaService = Injector::inst()->get('ElasticaService');
+        $response = $elasticaService->search($query);
         $results = [];
 
         foreach ($response->getSuggests()['Completion'][0]['options'] as $document) {

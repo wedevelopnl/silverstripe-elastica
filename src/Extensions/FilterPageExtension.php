@@ -3,6 +3,7 @@
 namespace TheWebmen\Elastica\Extensions;
 
 use SilverStripe\Core\ClassInfo;
+use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Forms\CheckboxField;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\GridField\GridField;
@@ -45,7 +46,10 @@ class FilterPageExtension extends DataExtension
     {
         $fields = [];
 
-        foreach (ElasticaService::singleton()->getIndexedClasses() as $class) {
+        /** @var ElasticaService $elasticaService */
+        $elasticaService = Injector::inst()->get('ElasticaService');
+
+        foreach ($elasticaService->getIndexedClasses() as $class) {
             /** @var FilterIndexItemTrait $object */
             $object = $class::singleton();
 
@@ -63,7 +67,10 @@ class FilterPageExtension extends DataExtension
     {
         $fields = [];
 
-        foreach (ElasticaService::singleton()->getIndexedClasses() as $class) {
+        /** @var ElasticaService $elasticaService */
+        $elasticaService = Injector::inst()->get('ElasticaService');
+
+        foreach ($elasticaService->getIndexedClasses() as $class) {
             /** @var FilterIndexItemTrait $object */
             $object = $class::singleton();
 

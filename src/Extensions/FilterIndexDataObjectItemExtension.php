@@ -2,8 +2,8 @@
 
 namespace TheWebmen\Elastica\Extensions;
 
+use SilverStripe\Core\Injector\Injector;
 use SilverStripe\ORM\DataExtension;
-use SilverStripe\ORM\DataObject;
 use TheWebmen\Elastica\Services\ElasticaService;
 use TheWebmen\Elastica\Traits\FilterIndexItemTrait;
 
@@ -20,7 +20,7 @@ class FilterIndexDataObjectItemExtension extends DataExtension
     {
         parent::__construct();
 
-        $this->elasticaService = ElasticaService::singleton();
+        $this->elasticaService = Injector::inst()->get('ElasticaService');
     }
 
     public function onAfterWrite()

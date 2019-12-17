@@ -24,7 +24,7 @@ class FilterIndexPageItemExtension extends SiteTreeExtension
     {
         parent::__construct();
 
-        $this->elasticaService = ElasticaService::singleton();
+        $this->elasticaService = Injector::inst()->get('ElasticaService');
     }
 
     public function onAfterPublish(&$original)
