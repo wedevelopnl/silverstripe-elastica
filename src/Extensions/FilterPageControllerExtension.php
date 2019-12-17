@@ -4,6 +4,7 @@ namespace TheWebmen\Elastica\Extensions;
 
 use SilverStripe\Control\RequestHandler;
 use SilverStripe\Core\Extension;
+use SilverStripe\Core\Injector\Injector;
 use TheWebmen\Elastica\Filters\Filter;
 use TheWebmen\Elastica\Forms\FilterForm;
 use TheWebmen\Elastica\Model\FacetIndexItemsList;
