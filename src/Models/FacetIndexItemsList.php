@@ -3,6 +3,7 @@
 namespace TheWebmen\Elastica\Model;
 
 use SilverStripe\CMS\Model\SiteTree;
+use SilverStripe\Core\Injector\Injector;
 use SilverStripe\ORM\Limitable;
 use SilverStripe\ORM\Map;
 use SilverStripe\ORM\SS_List;
@@ -43,7 +44,11 @@ class FacetIndexItemsList extends ViewableData implements SS_List, Limitable
     public function getResultSet()
     {
         if (!$this->resultSet) {
-            $this->resultSet = ElasticaService::singleton()->search($this->query);
+
+            /** @var ElasticaService $elasticaService */
+            $elasticaService = Injector::inst()->get('ElasticaService');
+
+            $this->resultSet = $elasticaService->search($this->query);
         }
         return $this->resultSet;
     }
