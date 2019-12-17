@@ -1,3 +1,11 @@
 ---
 Name: elastica
 ---
+SilverStripe\Core\Injector\Injector:
+  ElasticaService:
+    class: 'TheWebmen\Elastica\Services\ElasticaService'
+    constructor:
+      0: '`ELASTICSEARCH_INDEX`'
+      1:
+        host: '`ELASTICSEARCH_HOST`'
+        port: '`ELASTICSEARCH_PORT`'

@@ -30,11 +30,10 @@ class ElasticaService
      */
     protected $index;
 
-    public function __construct()
+    public function __construct($indexName, $config = [])
     {
-        $config = self::config()->get('client_config');
-        $client = new \Elastica\Client($config ? $config : []);
-        $this->index = $client->getIndex(self::config()->get('index_name'));
+        $client = new \Elastica\Client($config);
+        $this->index = $client->getIndex($indexName);
     }
 
     public function getIndex()
