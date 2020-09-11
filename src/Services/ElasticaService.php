@@ -90,7 +90,7 @@ class ElasticaService
 
             echo "Create documents\n";
             /** @var FilterIndexItemTrait $record */
-            foreach ($class::get() as $record) {
+            foreach (Versioned::get_by_stage($class, 'Live') as $record) {
                 $documents[] = $record->getElasticaDocument();
                 echo "Create documents\n";
             }
