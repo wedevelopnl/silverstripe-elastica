@@ -10,10 +10,6 @@ use SilverStripe\ORM\DataObject;
  */
 trait FilterIndexItemTrait
 {
-    public function getElasticaType()
-    {
-        return $this->owner->baseClass();
-    }
 
     public function getElasticaFields()
     {
@@ -32,7 +28,7 @@ trait FilterIndexItemTrait
 
     public function getElasticaMapping()
     {
-        $mapping = new \Elastica\Type\Mapping();
+        $mapping = new \Elastica\Mapping();
         $mapping->setProperties($this->getElasticaFields());
         $mapping->setParam('date_detection', false);
 
@@ -51,7 +47,7 @@ trait FilterIndexItemTrait
 
         $this->owner->extend('updateElasticaDocumentData', $data);
 
-        return new \Elastica\Document($this->owner->getElasticaId(), $data, $this->owner->getElasticaType());
+        return new \Elastica\Document($this->owner->getElasticaId(), $data, $this->owner->getIndexName());
     }
 
     public function getElasticaId()

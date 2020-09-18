@@ -27,13 +27,8 @@ class GridElementIndexExtension extends DataExtension implements IndexItemInterf
     public function __construct()
     {
         parent::__construct();
-        $elasticaServiceGridargs = [
-            GridElementIndexExtension::getIndexName(), [
-                'host' => Environment::getEnv('ELASTICSEARCH_HOST'),
-                'port' => Environment::getEnv('ELASTICSEARCH_PORT')
-            ]
-        ];
-        $this->elasticaService = Injector::inst()->get('ElasticaService', false, $elasticaServiceGridargs);
+
+        $this->elasticaService = Injector::inst()->get('ElasticaService')->setIndex(self::getIndexName());
     }
 
 

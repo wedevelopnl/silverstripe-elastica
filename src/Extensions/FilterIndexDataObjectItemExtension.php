@@ -25,7 +25,7 @@ class FilterIndexDataObjectItemExtension extends DataExtension implements IndexI
     {
         parent::__construct();
 
-        $this->elasticaService = Injector::inst()->get('ElasticaService');
+        $this->elasticaService = Injector::inst()->get('ElasticaService')->setIndex(self::getIndexName());
     }
 
     public function onAfterWrite()

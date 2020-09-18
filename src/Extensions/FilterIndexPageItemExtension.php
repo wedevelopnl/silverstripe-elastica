@@ -28,7 +28,7 @@ class FilterIndexPageItemExtension extends SiteTreeExtension implements IndexIte
     {
         parent::__construct();
 
-        $this->elasticaService = Injector::inst()->get('ElasticaService');
+        $this->elasticaService = Injector::inst()->get('ElasticaService')->setIndex(self::getIndexName());
     }
 
     public function onAfterPublish(&$original)
@@ -55,10 +55,7 @@ class FilterIndexPageItemExtension extends SiteTreeExtension implements IndexIte
             ]
         ];
         $fields['Content'] = ['type' => 'text'];
-        $fields['Url'] = [
-            'type' => 'text',
-            'fielddata' => true
-        ];
+        $fields['Url'] = ['type' => 'text'];
     }
 
     public function updateElasticaDocumentData(&$data)

@@ -15,6 +15,7 @@ use TheWebmen\Elastica\Extensions\FilterIndexPageItemExtension;
 use TheWebmen\Elastica\Extensions\GridElementIndexExtension;
 use TheWebmen\Elastica\Interfaces\IndexItemInterface;
 use TheWebmen\Elastica\Traits\FilterIndexItemTrait;
+Use Elastica\Client as ElasticaClient;
 use Translatable;
 
 class ElasticaService
@@ -27,15 +28,24 @@ class ElasticaService
 
     private static $number_of_replicas = 1;
 
+    /** @var ElasticaClient  */
+    protected $client;
+
     /**
      * @var \Elastica\Index
      */
     protected $index;
 
-    public function __construct($indexName, $config = [])
+    public function __construct($config = [])
     {
-        $client = new \Elastica\Client($config);
-        $this->index = $client->getIndex($indexName);
+        $this->client = new ElasticaClient($config);
+
+    }
+
+    public function setIndex($indexName)
+    {
+        $this->index = $this->client->getIndex($indexName);
+        return $this;
     }
 
     public function getIndex()
@@ -48,8 +58,7 @@ class ElasticaService
      */
     public function add($record)
     {
-        $type = $this->index->getType($record->getElasticaType());
-        $type->addDocument($record->getElasticaDocument());
+        $this->index->addDocument($record->getElasticaDocument());
     }
 
     /**
@@ -57,39 +66,60 @@ class ElasticaService
      */
     public function delete($record)
     {
-        $type = $this->index->getType($record->getElasticaType());
-        $type->deleteDocument($record->getElasticaDocument());
+        $this->index->deleteDocument($record->getElasticaDocument());
     }
 
+    
     public function reindex()
     {
         Versioned::set_reading_mode(Versioned::LIVE);
 
-        echo "Create index\n";
-        $this->index->create([
-            'settings' => [
-                'number_of_shards' => self::config()->get('number_of_shards'),
-                'number_of_replicas' => self::config()->get('number_of_replicas'),
-            ]
-        ], true);
-        echo "Done\n";
 
+        foreach ($this->getIndexClasses() as $indexer) {
+
+            echo "Create index\n";
+
+            $this->setIndex($this->getindexName($indexer));
+            $this->index->create([
+                'settings' => [
+                    'number_of_shards' => self::config()->get('number_of_shards'),
+                    'number_of_replicas' => self::config()->get('number_of_replicas'),
+                ]
+            ], true);
+            echo "Done\n";
+
+
+            $documents = $this->indexDocuments($indexer);
+
+            $this->extend('updateReindexDocuments', $documents);
+
+            echo "Add documents\n";
+            if (count($documents) > 0) {
+                $this->index->addDocuments($documents);
+            }
+            echo "Done\n";
+
+        }
+    }
+
+
+    protected function indexDocuments($indexer)
+    {
         $documents = [];
 
-        $indexedClasses = $this->getIndexedClasses();
+        $indexedClasses = $this->getExtendedClasses($indexer);
 
         foreach ($indexedClasses as $class) {
+
             echo "Indexing {$class}\n";
 
             /** @var FilterIndexItemTrait $instance */
             $instance = $class::singleton();
-            $type = $this->index->getType($instance->getElasticaType());
 
             $mapping = $instance->getElasticaMapping();
-            $mapping->setType($type);
 
             echo "Create mapping\n";
-            $mapping->send(['include_type_name' => true]);
+            $mapping->send($this->index);
             echo "Done\n";
 
             echo "Create documents\n";
@@ -101,60 +131,30 @@ class ElasticaService
             echo "Done\n";
         }
 
-        $this->extend('updateReindexDocuments', $documents);
-
-        echo "Add documents\n";
-        if (count($documents) > 0) {
-            $this->index->addDocuments($documents);
-        }
-        echo "Done\n";
+        return $documents;
     }
+
 
     public function search(\Elastica\Query $query)
     {
         return $this->index->search($query);
     }
 
-    public function getIndexedClasses()
-    {
-        $classes = [];
-        $extensions = $this->getExtensionClasses();
 
-//        foreach (ClassInfo::subclassesFor(DataObject::class) as $candidate) {
-//
-//            if (singleton($candidate)->hasExtension(FilterIndexPageItemExtension::class) ||
-//                singleton($candidate)->hasExtension(FilterIndexDataObjectItemExtension::class))
-//            {
-//                $classes[] = $candidate;
-//            }
-//        }
+    protected function getIndexClasses() {
 
-        /** @var IndexItemInterface $extension */
-        foreach ($extensions as $extension) {
-
-            $extensionClasses = call_user_func(sprintf('%s::%s', $extension, 'getExtendedClasses'));
-
-            $classes = array_merge($classes, $extensionClasses);
-        }
-        return $classes;
+        return [
+            FilterIndexPageItemExtension::class,
+            FilterIndexDataObjectItemExtension::class,
+            GridElementIndexExtension::class
+        ];
     }
 
+    protected function getIndexName($class){
+        call_user_func(sprintf('%s::%s', $class, 'getIndexName'));
+    }
 
-    private function getExtensionClasses() {
-
-        $classes = [];
-
-        if (FilterIndexPageItemExtension::getIndexName() == $this->index->getName()) {
-            $classes[] = FilterIndexPageItemExtension::class;
-        }
-
-        if (FilterIndexDataObjectItemExtension::getIndexName() == $this->index->getName()) {
-            $classes[] = FilterIndexDataObjectItemExtension::class;
-        }
-
-        if (GridElementIndexExtension::getIndexName() == $this->index->getName()) {
-            $classes[] = GridElementIndexExtension::class;
-        }
-        return $classes;
+    protected function getExtendedClasses($class){
+        call_user_func(sprintf('%s::%s', $class, 'getExtendedClasses'));
     }
 }

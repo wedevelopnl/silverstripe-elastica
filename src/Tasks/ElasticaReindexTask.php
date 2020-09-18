@@ -15,25 +15,8 @@ class ElasticaReindexTask extends BuildTask
 
     public function run($request)
     {
-
-        $esConfig = [
-            'host' => Environment::getEnv('ELASTICSEARCH_HOST'),
-            'port' => Environment::getEnv('ELASTICSEARCH_PORT')
-        ];
-
-        $indexers = [
-            FilterIndexPageItemExtension::class,
-            FilterIndexDataObjectItemExtension::class,
-            GridElementIndexExtension::class
-        ];
-
-        foreach ($indexers as $indexer) {
-            $indexName = call_user_func(sprintf('%s::%s', $indexer, 'getIndexName'));
-
-            /** @var ElasticaService $elasticaService */
-            $elasticaService = new ElasticaService($indexName,$esConfig);
-            $elasticaService->reindex();
-        }
-
+        /** @var ElasticaService $elasticaService */
+        $elasticaService = Injector::inst()->get('ElasticaService');
+        $elasticaService->reindex();
     }
 }
