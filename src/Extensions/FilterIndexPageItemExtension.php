@@ -2,18 +2,22 @@
 
 namespace TheWebmen\Elastica\Extensions;
 
+use SilverStripe\Core\Environment;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\CMS\Model\SiteTreeExtension;
 use SilverStripe\Core\Injector\Injector;
 use TheWebmen\Elastica\Services\ElasticaService;
 use TheWebmen\Elastica\Traits\FilterIndexItemTrait;
-
+use TheWebmen\Elastica\Interfaces\IndexItemInterface;
+use SilverStripe\Core\ClassInfo;
 /**
  * @property SiteTree $owner
  */
-class FilterIndexPageItemExtension extends SiteTreeExtension
+class FilterIndexPageItemExtension extends SiteTreeExtension implements IndexItemInterface
 {
     use FilterIndexItemTrait;
+
+    const INDEX_SUFFIX = 'page';
 
     /**
      * @var ElasticaService
@@ -40,6 +44,7 @@ class FilterIndexPageItemExtension extends SiteTreeExtension
     public function updateElasticaFields(&$fields)
     {
         $fields['ParentID'] = ['type' => 'integer'];
+        $fields['PageId'] = ['type' => 'keyword'];
         $fields['Title'] = [
             'type' => 'text',
             'fielddata' => true,
@@ -50,12 +55,41 @@ class FilterIndexPageItemExtension extends SiteTreeExtension
             ]
         ];
         $fields['Content'] = ['type' => 'text'];
+        $fields['Url'] = [
+            'type' => 'text',
+            'fielddata' => true
+        ];
     }
 
     public function updateElasticaDocumentData(&$data)
     {
+        $data['PageId'] = $this->owner->getElasticaId();
         $data['ParentID'] = $this->owner->ParentID;
         $data['Title'] = $this->owner->Title;
         $data['Content'] = $this->owner->Content;
+        $data['Url'] = $this->owner->AbsoluteLink();
+    }
+
+
+    public static function getIndexName()
+    {
+        $name =  sprintf('content-%s-%s', Environment::getEnv('ELASTICSEARCH_INDEX'), self::INDEX_SUFFIX);
+
+        if (Environment::getEnv('ELASTICSEARCH_INDEX_CONTENT_PREFIX')) {
+            $name = sprintf('%s-%s', Environment::getEnv('ELASTICSEARCH_INDEX_CONTENT_PREFIX'), $name);
+        }
+
+        return $name;
+    }
+
+    public static function  getExtendedClasses()
+    {
+        $classes = [];
+        foreach (ClassInfo::subclassesFor(SiteTree::class) as $candidate) {
+            if (singleton($candidate)->hasExtension(self::class)) {
+                $classes[] = $candidate;
+            }
+        }
+        return $classes;
     }
 }

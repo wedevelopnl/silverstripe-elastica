@@ -12,6 +12,8 @@ use SilverStripe\Versioned\Versioned;
 use TheWebmen\Elastica\Extensions\FilterIndexDataObjectItemExtension;
 use TheWebmen\Elastica\Extensions\FilterIndexItemExtension;
 use TheWebmen\Elastica\Extensions\FilterIndexPageItemExtension;
+use TheWebmen\Elastica\Extensions\GridElementIndexExtension;
+use TheWebmen\Elastica\Interfaces\IndexItemInterface;
 use TheWebmen\Elastica\Traits\FilterIndexItemTrait;
 use Translatable;
 
@@ -62,7 +64,7 @@ class ElasticaService
     public function reindex()
     {
         Versioned::set_reading_mode(Versioned::LIVE);
-        
+
         echo "Create index\n";
         $this->index->create([
             'settings' => [
@@ -74,7 +76,9 @@ class ElasticaService
 
         $documents = [];
 
-        foreach ($this->getIndexedClasses() as $class) {
+        $indexedClasses = $this->getIndexedClasses();
+
+        foreach ($indexedClasses as $class) {
             echo "Indexing {$class}\n";
 
             /** @var FilterIndexItemTrait $instance */
@@ -96,7 +100,7 @@ class ElasticaService
             }
             echo "Done\n";
         }
-        
+
         $this->extend('updateReindexDocuments', $documents);
 
         echo "Add documents\n";
@@ -114,12 +118,42 @@ class ElasticaService
     public function getIndexedClasses()
     {
         $classes = [];
-        foreach (ClassInfo::subclassesFor(DataObject::class) as $candidate) {
-            if (singleton($candidate)->hasExtension(FilterIndexPageItemExtension::class) ||
-                singleton($candidate)->hasExtension(FilterIndexDataObjectItemExtension::class))
-            {
-                $classes[] = $candidate;
-            }
+        $extensions = $this->getExtensionClasses();
+
+//        foreach (ClassInfo::subclassesFor(DataObject::class) as $candidate) {
+//
+//            if (singleton($candidate)->hasExtension(FilterIndexPageItemExtension::class) ||
+//                singleton($candidate)->hasExtension(FilterIndexDataObjectItemExtension::class))
+//            {
+//                $classes[] = $candidate;
+//            }
+//        }
+
+        /** @var IndexItemInterface $extension */
+        foreach ($extensions as $extension) {
+
+            $extensionClasses = call_user_func(sprintf('%s::%s', $extension, 'getExtendedClasses'));
+
+            $classes = array_merge($classes, $extensionClasses);
+        }
+        return $classes;
+    }
+
+
+    private function getExtensionClasses() {
+
+        $classes = [];
+
+        if (FilterIndexPageItemExtension::getIndexName() == $this->index->getName()) {
+            $classes[] = FilterIndexPageItemExtension::class;
+        }
+
+        if (FilterIndexDataObjectItemExtension::getIndexName() == $this->index->getName()) {
+            $classes[] = FilterIndexDataObjectItemExtension::class;
+        }
+
+        if (GridElementIndexExtension::getIndexName() == $this->index->getName()) {
+            $classes[] = GridElementIndexExtension::class;
         }
         return $classes;
     }
