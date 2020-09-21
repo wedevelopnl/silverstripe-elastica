@@ -28,7 +28,8 @@ class FilterIndexPageItemExtension extends SiteTreeExtension implements IndexIte
     {
         parent::__construct();
 
-        $this->elasticaService = Injector::inst()->get('ElasticaService')->setIndex(self::getIndexName());
+        $this->elasticaService = Injector::inst()->get('ElasticaService');
+
     }
 
     public function onAfterPublish(&$original)

@@ -47,7 +47,7 @@ class FilterPageExtension extends DataExtension
         $fields = [];
 
         /** @var ElasticaService $elasticaService */
-        $elasticaService = Injector::inst()->get('ElasticaService')->setIndex(FilterIndexDataObjectItemExtension::getIndexName());
+        $elasticaService = Injector::inst()->get('ElasticaService')->setIndex(FilterIndexPageItemExtension::getIndexName());
 
         foreach ($elasticaService->getIndexedClasses() as $class) {
             /** @var FilterIndexItemTrait $object */
@@ -68,7 +68,7 @@ class FilterPageExtension extends DataExtension
         $fields = [];
 
         /** @var ElasticaService $elasticaService */
-        $elasticaService = Injector::inst()->get('ElasticaService')->setIndex(FilterIndexDataObjectItemExtension::getIndexName());
+        $elasticaService = Injector::inst()->get('ElasticaService')->setIndex(FilterIndexPageItemExtension::getIndexName());
 
         foreach ($elasticaService->getIndexedClasses() as $class) {
             /** @var FilterIndexItemTrait $object */

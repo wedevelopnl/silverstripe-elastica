@@ -28,7 +28,8 @@ class GridElementIndexExtension extends DataExtension implements IndexItemInterf
     {
         parent::__construct();
 
-        $this->elasticaService = Injector::inst()->get('ElasticaService')->setIndex(self::getIndexName());
+        $this->elasticaService = Injector::inst()->get('ElasticaService');
+
     }
 
 
