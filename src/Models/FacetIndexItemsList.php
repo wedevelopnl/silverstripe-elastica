@@ -41,12 +41,12 @@ class FacetIndexItemsList extends ViewableData implements SS_List, Limitable
         $this->resultSet = null;
     }
 
-    public function getResultSet()
+    public function getResultSet($indexName)
     {
         if (!$this->resultSet) {
 
             /** @var ElasticaService $elasticaService */
-            $elasticaService = Injector::inst()->get('ElasticaService');
+            $elasticaService = Injector::inst()->get('ElasticaService')->setIndex($indexName);
 
             $this->resultSet = $elasticaService->search($this->query);
         }
@@ -75,6 +75,8 @@ class FacetIndexItemsList extends ViewableData implements SS_List, Limitable
         $pages = [];
 
         foreach ($rows as $row) {
+
+
             $pages[] = SiteTree::get()->byID($row->getData()['ID']);
         }
 

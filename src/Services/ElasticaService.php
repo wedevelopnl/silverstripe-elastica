@@ -69,7 +69,7 @@ class ElasticaService
         $this->index->deleteDocument($record->getElasticaDocument());
     }
 
-    
+
     public function reindex()
     {
         Versioned::set_reading_mode(Versioned::LIVE);
@@ -77,9 +77,10 @@ class ElasticaService
 
         foreach ($this->getIndexClasses() as $indexer) {
 
-            echo "Create index\n";
+            $indexName = $this->getindexName($indexer);
+            $this->setIndex($indexName);
+            echo "Create index $indexName \n";
 
-            $this->setIndex($this->getindexName($indexer));
             $this->index->create([
                 'settings' => [
                     'number_of_shards' => self::config()->get('number_of_shards'),
@@ -150,11 +151,13 @@ class ElasticaService
         ];
     }
 
-    protected function getIndexName($class){
-        call_user_func(sprintf('%s::%s', $class, 'getIndexName'));
+    protected function getIndexName($class)
+    {
+        return call_user_func(sprintf('%s::%s', $class, 'getIndexName'));
     }
 
-    protected function getExtendedClasses($class){
-        call_user_func(sprintf('%s::%s', $class, 'getExtendedClasses'));
+    protected function getExtendedClasses($class)
+    {
+       return  call_user_func(sprintf('%s::%s', $class, 'getExtendedClasses'));
     }
 }
