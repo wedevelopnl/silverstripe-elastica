@@ -49,7 +49,7 @@ class FilterPageExtension extends DataExtension
         /** @var ElasticaService $elasticaService */
         $elasticaService = Injector::inst()->get('ElasticaService')->setIndex(FilterIndexPageItemExtension::getIndexName());
 
-        foreach ($elasticaService->getIndexedClasses() as $class) {
+        foreach (FilterIndexPageItemExtension::getExtendedClasses() as $class) {
             /** @var FilterIndexItemTrait $object */
             $object = $class::singleton();
 
@@ -70,7 +70,7 @@ class FilterPageExtension extends DataExtension
         /** @var ElasticaService $elasticaService */
         $elasticaService = Injector::inst()->get('ElasticaService')->setIndex(FilterIndexPageItemExtension::getIndexName());
 
-        foreach ($elasticaService->getIndexedClasses() as $class) {
+        foreach (FilterIndexPageItemExtension::getExtendedClasses() as $class) {
             /** @var FilterIndexItemTrait $object */
             $object = $class::singleton();
 
