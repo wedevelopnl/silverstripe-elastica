@@ -138,7 +138,10 @@ class ElasticaService
 
     public function search(\Elastica\Query $query)
     {
-        return $this->index->search($query);
+       if (!$this->index){
+           $this->setDefaultIndex();
+       }
+       return $this->index->search($query);
     }
 
 
@@ -159,5 +162,12 @@ class ElasticaService
     protected function getExtendedClasses($class)
     {
        return  call_user_func(sprintf('%s::%s', $class, 'getExtendedClasses'));
+    }
+
+    protected function setDefaultIndex()
+    {
+        $this->setIndex(FilterIndexPageItemExtension::getIndexName());
+        
+        return $this;
     }
 }
