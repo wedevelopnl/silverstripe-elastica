@@ -52,8 +52,14 @@ class GridElementIndexExtension extends DataExtension implements IndexItemInterf
 
         $data['PageId'] = $page?implode('_', [$page->ClassName, $page->ID]):'none';
         $data['ElementTitle'] = $this->owner->getTitle();
+
         if ($this->owner->hasField('Content')) {
             $data['Content'] = $this->owner->Content;
+        }
+        
+        if ($page) {
+            $data['Url'] = $page->AbsoluteLink();
+            $data['Title'] = $page->getTitle();
         }
     }
 
