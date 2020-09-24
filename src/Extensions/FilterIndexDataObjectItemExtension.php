@@ -31,12 +31,12 @@ class FilterIndexDataObjectItemExtension extends DataExtension implements IndexI
 
     public function onAfterWrite()
     {
-        $this->elasticaService->add($this);
+        $this->elasticaService->setIndex(self::getIndexName())->add($this);
     }
 
     public function onAfterDelete()
     {
-        $this->elasticaService->delete($this);
+        $this->elasticaService->setIndex(self::getIndexName())->delete($this);
     }
 
     public static function getIndexName()

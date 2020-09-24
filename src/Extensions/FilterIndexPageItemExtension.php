@@ -34,12 +34,12 @@ class FilterIndexPageItemExtension extends SiteTreeExtension implements IndexIte
 
     public function onAfterPublish(&$original)
     {
-        $this->elasticaService->add($this);
+        $this->elasticaService->setIndex(self::getIndexName())->add($this);
     }
 
     public function onAfterUnpublish()
     {
-        $this->elasticaService->delete($this);
+        $this->elasticaService->setIndex(self::getIndexName())->delete($this);
     }
 
     public function updateElasticaFields(&$fields)
