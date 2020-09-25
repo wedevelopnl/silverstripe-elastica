@@ -66,7 +66,7 @@ class ElasticaService
      */
     public function delete($record)
     {
-        $this->index->deleteDocument($record->getElasticaDocument());
+        $this->index->deleteById($record->getElasticaId());
     }
 
 
