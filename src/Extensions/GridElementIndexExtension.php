@@ -56,7 +56,7 @@ class GridElementIndexExtension extends DataExtension implements IndexItemInterf
         if ($this->owner->hasField('Content')) {
             $data['Content'] = $this->owner->Content;
         }
-        
+
         if ($page) {
             $data['Url'] = $page->AbsoluteLink();
             $data['Title'] = $page->getTitle();
@@ -66,12 +66,17 @@ class GridElementIndexExtension extends DataExtension implements IndexItemInterf
 
     public function onAfterPublish()
     {
-        $this->elasticaService->setIndex(self::getIndexName())->add($this);
+        $this->updateElasticaDocument();
     }
 
     public function onAfterUnpublish()
     {
         $this->elasticaService->setIndex(self::getIndexName())->delete($this);
+    }
+
+    public function updateElasticaDocument()
+    {
+        $this->elasticaService->setIndex(self::getIndexName())->add($this);
     }
 
     public static function getIndexName()
