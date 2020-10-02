@@ -15,7 +15,6 @@ use SilverStripe\View\ArrayData;
 class SearchResultList extends ViewableData
 {
     const RESULT_COUNT_VAR = 'resultCount';
-    const PAGE_SIZE = 10;
     const PAGE_VAR = 'page';
 
     /**
@@ -42,29 +41,28 @@ class SearchResultList extends ViewableData
     }
 
     /**
-     * @param strign $url
+     * @param string $url
      * @param int $pageNr
+     * @param int $pageSize
      * @param int $pageOffset
      * @return array|\Elastica\ResultSet
      */
-    public function getResultSet(string $url, int $pageNr, int $pageOffset)
+    public function getResultSet(string $url, int $pageNr,int $pageSize, int $pageOffset)
     {
         if (!$this->resultSet) {
 
-            $this->resultSet = $this->getSearchResult($this->elasticaService->search($this->query), $url, $pageNr, $pageOffset);
+            $this->resultSet = $this->getSearchResult($this->elasticaService->search($this->query), $url, $pageNr, $pageSize, $pageOffset);
         }
         return $this->resultSet;
     }
 
     /**
-     * //     *
-     * //     * @param ResultSet $searchResult
-     * //     * @param $currentPageNr
-     * //     * @return array
-     * //     */
-    protected function getSearchResult(ResultSet $searchResult, $currentUrl, $currentPageNr = 1, $pageOffset)
+     * @param ResultSet $searchResult
+     * @param $currentPageNr
+     * @return array
+     */
+    protected function getSearchResult(ResultSet $searchResult, $currentUrl, $currentPageNr = 1, $pageSize, $pageOffset)
     {
-
         $dataList = new \SilverStripe\ORM\ArrayList();
         $rows = $searchResult->getResults();
 
@@ -77,8 +75,7 @@ class SearchResultList extends ViewableData
 
         $resultCount = $searchResult->getAggregation(self::RESULT_COUNT_VAR)['value'];
 
-        $pageCount = ceil($resultCount / self::PAGE_SIZE);
-
+        $pageCount = ceil($resultCount / $pageSize);
 
         if ($currentPageNr > 1) {
             $prevPageNr = $currentPageNr - 1;
