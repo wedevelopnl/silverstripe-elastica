@@ -2,6 +2,7 @@
 
 namespace TheWebmen\Elastica\Traits;
 
+use SilverStripe\Core\Environment;
 use SilverStripe\ORM\DataObject;
 
 /**
@@ -53,5 +54,10 @@ trait FilterIndexItemTrait
     public function getElasticaId()
     {
         return implode('_', [$this->owner->ClassName, $this->owner->ID]);
+    }
+
+    public function getElasticaPageId()
+    {
+        return implode('_', [Environment::getEnv('ELASTICSEARCH_INDEX'), $this->owner->getElasticaId()]);
     }
 }

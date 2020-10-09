@@ -61,7 +61,7 @@ class FilterIndexPageItemExtension extends SiteTreeExtension implements IndexIte
 
     public function updateElasticaDocumentData(&$data)
     {
-        $data['PageId'] = $this->owner->getElasticaId();
+        $data['PageId'] = $this->owner->getElasticaPageId();
         $data['ParentID'] = $this->owner->ParentID;
         $data['Title'] = $this->owner->Title;
         $data['Content'] = $this->owner->Content;
