@@ -94,7 +94,8 @@ class SearchResultList extends ViewableData
             'NotLastPage' => $currentPageNr <> $pageCount,
             'PrevLink' => isset($prevLink) ? $prevLink : null,
             'NextLink' => isset($nextLink) ? $nextLink : null,
-            'PageLinks' => $this->paginationLinks($currentPageNr, $pageCount, $currentUrl, $pageOffset)
+            'PageLinks' => $this->paginationLinks($currentPageNr, $pageCount, $currentUrl, $pageOffset),
+            'CountResults' => $resultCount
         ];
 
         return $data;
