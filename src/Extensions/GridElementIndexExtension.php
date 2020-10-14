@@ -43,13 +43,16 @@ class GridElementIndexExtension extends DataExtension implements IndexItemInterf
             'type' => 'text',
             'fielddata' => true
         ];
-
+        $fields['suggest'] = [
+            'type' => 'completion',
+            'analyzer' => 'suggestion'
+        ];
     }
 
     public function updateElasticaDocumentData(&$data)
     {
         $page = $this->owner->getPage();
-        
+
         $data['PageId'] = $page?$page->getElasticaPageId():'none';
         $data['ElementTitle'] = $this->owner->getTitle();
 

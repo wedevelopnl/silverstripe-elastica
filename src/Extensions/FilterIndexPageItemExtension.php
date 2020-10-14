@@ -57,6 +57,10 @@ class FilterIndexPageItemExtension extends SiteTreeExtension implements IndexIte
         ];
         $fields['Content'] = ['type' => 'text'];
         $fields['Url'] = ['type' => 'text'];
+        $fields['suggest'] = [
+            'type' => 'completion',
+            'analyzer' => 'suggestion'
+        ];
     }
 
     public function updateElasticaDocumentData(&$data)

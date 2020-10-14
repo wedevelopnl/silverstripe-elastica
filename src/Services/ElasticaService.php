@@ -74,7 +74,6 @@ class ElasticaService
     {
         Versioned::set_reading_mode(Versioned::LIVE);
 
-
         foreach ($this->getIndexClasses() as $indexer) {
 
             $indexName = $this->getindexName($indexer);
@@ -85,6 +84,45 @@ class ElasticaService
                 'settings' => [
                     'number_of_shards' => self::config()->get('number_of_shards'),
                     'number_of_replicas' => self::config()->get('number_of_replicas'),
+                    'analysis' => [
+                        'filter' => [
+                            'dutch_stop' => [
+                                'type' => 'stop',
+                                'stopwords' => '_dutch_',
+                                'ignore_case' => true
+                            ],
+                            'filename_stop' => [
+                                'type' => 'stop',
+                                'stopwords' => ['doc', 'jpg', 'jpeg', 'png', 'pdf', 'exe', 'csv']
+                            ],
+                            'length' => [
+                                'type' => 'length',
+                                'min' => 3
+                            ]
+                        ],
+                        'char_filter' => [
+                            'html' => [
+                                'type' => 'html_strip',
+                            ],
+                            'number_filter' => [
+                                'type' => 'pattern_replace',
+                                'pattern' => '\\d+',
+                                'replacement' => ''
+                            ],
+                            'file_filter' => [
+                                'type' => 'pattern_replace',
+                                'pattern' => '\.[a-z]{1,4}$',
+                                'replacement' => ''
+                            ]
+                        ],
+                        'analyzer' => [
+                            'suggestion' => [
+                                'tokenizer' => 'standard',
+                                'filter' => ['dutch_stop', 'lowercase', 'filename_stop', 'length'],
+                                'char_filter' => ['html', 'number_filter', 'file_filter'],
+                            ]
+                        ],
+                    ]
                 ]
             ], true);
             echo "Done\n";
@@ -99,7 +137,6 @@ class ElasticaService
                 $this->index->addDocuments($documents);
             }
             echo "Done\n";
-
         }
     }
 
@@ -124,9 +161,33 @@ class ElasticaService
             echo "Done\n";
 
             echo "Create documents\n";
+
             /** @var FilterIndexItemTrait $record */
             foreach (Versioned::get_by_stage($class, 'Live') as $record) {
-                $documents[] = $record->getElasticaDocument();
+                /** @var \Elastica\Document $document */
+                $document = $record->getElasticaDocument();
+
+                // get words for autocomplete
+                $data = $document->getData();
+
+                $analyzed =[];
+                foreach (['Title', 'Content'] as $field) {
+                   // $analyzed = [];
+                    $words=[];
+                    $text = $record->getField($field);
+                    if (empty($text)) {
+                        continue;
+                    }
+
+                    $words = array_column($this->index->analyze(['analyzer' => 'suggestion', 'text' => $text]), 'token');
+                    $analyzed = array_merge($words, $analyzed);
+                }
+
+                $analyzed = array_values(array_unique($analyzed));
+                $suggest = ['input' => $analyzed];
+                $document->set('suggest', $suggest);
+
+                $documents[] = $document;
                 echo "Create documents\n";
             }
             echo "Done\n";
@@ -167,7 +228,7 @@ class ElasticaService
     protected function setDefaultIndex()
     {
         $this->setIndex(FilterIndexPageItemExtension::getIndexName());
-        
+
         return $this;
     }
 }
