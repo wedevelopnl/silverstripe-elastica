@@ -43,7 +43,7 @@ class GridElementIndexExtension extends DataExtension implements IndexItemInterf
             'type' => 'text',
             'fielddata' => true
         ];
-        $fields['suggest'] = [
+        $fields[ElasticaService::SUGGEST_FIELD_NAME] = [
             'type' => 'completion',
             'analyzer' => 'suggestion'
         ];

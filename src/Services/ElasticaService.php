@@ -3,6 +3,7 @@
 namespace TheWebmen\Elastica\Services;
 
 use Elastica\Document;
+use Elastica\Suggest;
 use SilverStripe\Core\ClassInfo;
 use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Injector\Injectable;
@@ -23,6 +24,8 @@ class ElasticaService
     use Extensible;
     use Injectable;
     use Configurable;
+
+    const SUGGEST_FIELD_NAME = 'suggest';
 
     private static $number_of_shards = 1;
 
@@ -205,6 +208,27 @@ class ElasticaService
        return $this->index->search($query);
     }
 
+
+    public function suggest(string $field, string  $query, array $options)
+    {
+        $suggest = new Suggest();
+
+        $phrase = new Suggest\Completion($field, self::SUGGEST_FIELD_NAME);
+        $phrase->setPrefix($query);
+
+        if (!empty($options['fuzzy'])){
+            $phrase->setFuzzy($options['fuzzy']);
+        }
+
+        $phrase->setSize($options['size']);
+        $phrase->setParam('skip_duplicates', $options['skip_duplicates']);
+
+        $suggest->addSuggestion($phrase);
+
+        $result = $this->index->search($suggest);
+        
+        return $result;
+    }
 
     protected function getIndexClasses() {
 
