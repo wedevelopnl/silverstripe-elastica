@@ -114,7 +114,7 @@ class ElasticaService
                             ],
                             'file_filter' => [
                                 'type' => 'pattern_replace',
-                                'pattern' => '\.[a-z]{1,4}$',
+                                'pattern' => '^[\\w\\-]+\\.[a-z]{1,4}$',
                                 'replacement' => ''
                             ]
                         ],
@@ -226,7 +226,7 @@ class ElasticaService
         $suggest->addSuggestion($phrase);
 
         $result = $this->index->search($suggest);
-        
+
         return $result;
     }
 
