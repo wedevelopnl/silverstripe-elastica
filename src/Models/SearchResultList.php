@@ -2,6 +2,7 @@
 
 namespace TheWebmen\Elastica\Model;
 
+use phpDocumentor\Reflection\Types\Boolean;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\ORM\Limitable;
 use SilverStripe\ORM\SS_List;
@@ -45,13 +46,14 @@ class SearchResultList extends ViewableData
      * @param int $pageNr
      * @param int $pageSize
      * @param int $pageOffset
+     * @param $moveOffset
      * @return array|\Elastica\ResultSet
      */
-    public function getResultSet(string $url, int $pageNr,int $pageSize, int $pageOffset)
+    public function getResultSet(string $url, int $pageNr,int $pageSize, int $pageOffset, $moveOffset = true)
     {
         if (!$this->resultSet) {
 
-            $this->resultSet = $this->getSearchResult($this->elasticaService->search($this->query), $url, $pageNr, $pageSize, $pageOffset);
+            $this->resultSet = $this->getSearchResult($this->elasticaService->search($this->query), $url, $pageNr, $pageSize, $pageOffset, $moveOffset);
         }
         return $this->resultSet;
     }
@@ -61,7 +63,7 @@ class SearchResultList extends ViewableData
      * @param $currentPageNr
      * @return array
      */
-    protected function getSearchResult(ResultSet $searchResult, $currentUrl, $currentPageNr = 1, $pageSize, $pageOffset)
+    protected function getSearchResult(ResultSet $searchResult, $currentUrl, $currentPageNr = 1, $pageSize, $pageOffset, $moveOffset = true)
     {
         $dataList = new \SilverStripe\ORM\ArrayList();
         $rows = $searchResult->getResults();
@@ -94,7 +96,7 @@ class SearchResultList extends ViewableData
             'NotLastPage' => $currentPageNr <> $pageCount,
             'PrevLink' => isset($prevLink) ? $prevLink : null,
             'NextLink' => isset($nextLink) ? $nextLink : null,
-            'PageLinks' => $this->paginationLinks($currentPageNr, $pageCount, $currentUrl, $pageOffset),
+            'PageLinks' => $this->paginationLinks($currentPageNr, $pageCount, $currentUrl, $pageOffset, $moveOffset),
             'CountResults' => $resultCount
         ];
 
@@ -106,21 +108,30 @@ class SearchResultList extends ViewableData
      * @param $total
      * @param $url
      * @param int $offset
+     * @param $moveOffset
      * @return ArrayList
      */
-    protected function paginationLinks($current, $total, $url, $offset)
+    protected function paginationLinks($current, $total, $url, $offset, $moveOffset = true)
     {
         $result = new ArrayList();
 
         $left = max($current - $offset, 1);
         $right = min($current + $offset, $total);
-        $range = range($current - $offset, $current + $offset);
 
         $offsetTotal = $offset * 2;
 
-        if ($left + $offsetTotal > $total) {
-            $left = $total - $offsetTotal;
+        // should total offest be set on one side for the first or last pages
+        if ($moveOffset) {
+            if ($left + $offsetTotal > $total) {
+                $left = $total - $offsetTotal;
+            }
+
+            if ($right < $offsetTotal +1 ){
+                $right = $offsetTotal +1;
+            }
         }
+
+        $range = range($left, $right);
 
         for ($i = 0; $i < $total; $i++) {
 
