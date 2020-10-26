@@ -177,7 +177,7 @@ class ElasticaService
                 foreach (['Title', 'Content'] as $field) {
                    // $analyzed = [];
                     $words=[];
-                    $text = $record->getField($field);
+                    $text = isset($data[$field]) ? $data[$field] : "";
                     if (empty($text)) {
                         continue;
                     }
