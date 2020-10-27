@@ -56,7 +56,7 @@ class GridElementIndexExtension extends DataExtension implements IndexItemInterf
         $data['PageId'] = $page?$page->getElasticaPageId():'none';
         $data['ElementTitle'] = $this->owner->getTitle();
 
-        if ($this->owner->hasField('Content')) {
+        if ($this->owner->hasField('Content') && !isset($data['Content'])) {
             $data['Content'] = $this->owner->Content;
         }
 
