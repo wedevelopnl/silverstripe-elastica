@@ -56,6 +56,8 @@ class RangeFilter extends Filter
             }
         }
 
+        $this->extend('updateAggregationQuery', $query);
+
         $min = new \Elastica\Aggregation\Min('min');
         $min->setField($this->FieldName);
 

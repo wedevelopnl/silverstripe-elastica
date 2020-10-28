@@ -112,6 +112,8 @@ class TermsFilter extends Filter
             }
         }
 
+        $this->extend('updateAggregationQuery', $aggFilterQuery);
+
         $agg = new \Elastica\Aggregation\Terms('terms');
         $agg->setField($this->FieldName);
         $agg->setOrder('_term', 'asc');

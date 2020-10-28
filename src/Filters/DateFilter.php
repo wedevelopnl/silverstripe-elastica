@@ -70,6 +70,8 @@ class DateFilter extends Filter
             }
         }
 
+        $this->extend('updateAggregationQuery', $query);
+
         $aggRange = new \Elastica\Aggregation\Range('range');
         $aggRange->setField($this->FieldName);
 
