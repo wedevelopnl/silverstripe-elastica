@@ -168,29 +168,7 @@ class ElasticaService
             /** @var FilterIndexItemTrait $record */
             foreach (Versioned::get_by_stage($class, 'Live') as $record) {
                 /** @var \Elastica\Document $document */
-                $document = $record->getElasticaDocument();
-
-                // get words for autocomplete
-                $data = $document->getData();
-
-                $analyzed =[];
-                foreach (['Title', 'Content'] as $field) {
-                   // $analyzed = [];
-                    $words=[];
-                    $text = isset($data[$field]) ? $data[$field] : "";
-                    if (empty($text)) {
-                        continue;
-                    }
-
-                    $words = array_column($this->index->analyze(['analyzer' => 'suggestion', 'text' => $text]), 'token');
-                    $analyzed = array_merge($words, $analyzed);
-                }
-
-                $analyzed = array_values(array_unique($analyzed));
-                $suggest = ['input' => $analyzed];
-                $document->set('suggest', $suggest);
-
-                $documents[] = $document;
+                $documents[] = $record->getElasticaDocument();
                 echo "Create documents\n";
             }
             echo "Done\n";
@@ -198,7 +176,6 @@ class ElasticaService
 
         return $documents;
     }
-
 
     public function search(\Elastica\Query $query)
     {

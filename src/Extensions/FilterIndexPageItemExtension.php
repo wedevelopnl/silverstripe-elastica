@@ -70,6 +70,11 @@ class FilterIndexPageItemExtension extends SiteTreeExtension implements IndexIte
         $data['Title'] = $this->owner->Title;
         $data['Content'] = $this->owner->Content;
         $data['Url'] = $this->owner->AbsoluteLink();
+
+        if (!isset($data[ElasticaService::SUGGEST_FIELD_NAME])) {
+            $data[ElasticaService::SUGGEST_FIELD_NAME] = $this->fillSugest(['Title','Content'],$data);
+        }
+
     }
 
 
@@ -93,5 +98,26 @@ class FilterIndexPageItemExtension extends SiteTreeExtension implements IndexIte
             }
         }
         return $classes;
+    }
+
+    protected function fillSugest($fields, $data)
+    {
+        $analyzed =[];
+        foreach ($fields as $field) {
+            // $analyzed = [];
+            $words=[];
+            $text = isset($data[$field]) ? $data[$field] : "";
+            if (empty($text)) {
+                continue;
+            }
+
+            $words = array_column($this->elasticaService->getIndex()->analyze(['analyzer' => 'suggestion', 'text' => $text]), 'token');
+            $analyzed = array_merge($words, $analyzed);
+        }
+
+        $analyzed = array_values(array_unique($analyzed));
+        $suggest = ['input' => $analyzed];
+
+        return $suggest;
     }
 }

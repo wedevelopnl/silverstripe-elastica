@@ -64,6 +64,9 @@ class GridElementIndexExtension extends DataExtension implements IndexItemInterf
             $data['Url'] = $page->AbsoluteLink();
             $data['Title'] = $page->getTitle();
         }
+        if ($data['PageId'] !== 'none' && !isset($data[ElasticaService::SUGGEST_FIELD_NAME])){
+            $data[ElasticaService::SUGGEST_FIELD_NAME] = $this->fillSugest(['Title','Content'], $data);
+        }
     }
 
 
@@ -105,4 +108,24 @@ class GridElementIndexExtension extends DataExtension implements IndexItemInterf
         return $classes;
     }
 
+    protected function fillSugest($fields, $data)
+    {
+        $analyzed =[];
+        foreach ($fields as $field) {
+            // $analyzed = [];
+            $words=[];
+            $text = isset($data[$field]) ? $data[$field] : "";
+            if (empty($text)) {
+                continue;
+            }
+
+            $words = array_column($this->elasticaService->getIndex()->analyze(['analyzer' => 'suggestion', 'text' => $text]), 'token');
+            $analyzed = array_merge($words, $analyzed);
+        }
+
+        $analyzed = array_values(array_unique($analyzed));
+        $suggest = ['input' => $analyzed];
+
+        return $suggest;
+    }
 }
