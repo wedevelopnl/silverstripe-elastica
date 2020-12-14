@@ -20,15 +20,18 @@ class DateFilter extends Filter
     private static $mapping = [
         'Today' => [
             'From' => 'today midnight',
-            'To' => 'tomorrow midnight'
+            'To' => 'tomorrow midnight',
+            'Label' => 'Today',
         ],
         'Since 7 days' => [
             'From' => '-7 days midnight',
-            'To' => 'tomorrow midnight'
+            'To' => 'tomorrow midnight',
+            'Label' => 'Since 7 days',
         ],
         'Since 30 days' => [
             'From' => '-30 days midnight',
-            'To' => 'tomorrow midnight'
+            'To' => 'tomorrow midnight',
+            'Label' => 'Since 30 days',
         ]
     ];
 
@@ -50,8 +53,17 @@ class DateFilter extends Filter
 
     public function generateFilterField()
     {
-        $values = array_keys($this->config()->get('mapping'));
-        return new DateFilterField($this->Name, $this->Title, array_combine($values, $values));
+        $mapping = $this->config()->get('mapping');
+
+        $options = [];
+
+        foreach ($mapping as $key => $settings) {
+            if (!array_key_exists('Exclude', $settings) || !$settings['Exclude']) {
+                $options[$key] = $settings['Label'];
+            }
+        }
+
+        return new DateFilterField($this->Name, $this->Title, $options);
     }
 
     /**
