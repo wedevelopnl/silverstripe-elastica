@@ -58,7 +58,7 @@ class TermsFilter extends Filter
         $query = null;
 
         if ($value && is_array($value)) {
-            $query = new \Elastica\Query\Terms($this->FieldName, $value);
+            $query = new \Elastica\Query\Terms($this->FieldName, array_keys($value));
         } elseif (!empty($value)) {
             $query = new \Elastica\Query\Term();
             $query->setTerm($this->FieldName, $value);
