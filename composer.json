@@ -6,7 +6,7 @@
   "require": {
     "ext-json": "*",
     "silverstripe/framework": "^4",
-    "ruflin/elastica": "^6.1",
+    "ruflin/elastica": "^7.0",
     "symbiote/silverstripe-gridfieldextensions": "^3.2",
     "silverstripe/tagfield": "2.3.0"
   },

@@ -103,7 +103,8 @@ class FilterPageControllerExtension extends Extension
                 $this->owner->updateQuery($query);
             }
 
-            $elasticaService = Injector::inst()->get('ElasticaService');
+            $elasticaService = Injector::inst()->get('ElasticaService')->setIndex(FilterIndexPageItemExtension::getIndexName());
+
             $list = new FacetIndexItemsList($elasticaService->getIndex(), $query);
 
             $this->list = $list;

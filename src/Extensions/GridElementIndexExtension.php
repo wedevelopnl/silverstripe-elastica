@@ -1,28 +1,28 @@
 <?php
-
 namespace TheWebmen\Elastica\Extensions;
 
-use SilverStripe\Core\Environment;
-use SilverStripe\CMS\Model\SiteTree;
-use SilverStripe\CMS\Model\SiteTreeExtension;
-use SilverStripe\Core\Injector\Injector;
+use SilverStripe\ORM\DataExtension;
+use TheWebmen\Elastica\Extensions\FilterIndexDataObjectItemExtension;
 use TheWebmen\Elastica\Services\ElasticaService;
+use SilverStripe\Core\Injector\Injector;
 use TheWebmen\Elastica\Traits\FilterIndexItemTrait;
+use SilverStripe\Core\Environment;
 use TheWebmen\Elastica\Interfaces\IndexItemInterface;
 use SilverStripe\Core\ClassInfo;
-/**
- * @property SiteTree $owner
- */
-class FilterIndexPageItemExtension extends SiteTreeExtension implements IndexItemInterface
+use SilverStripe\ORM\DataObject;
+
+class GridElementIndexExtension extends DataExtension implements IndexItemInterface
 {
+
     use FilterIndexItemTrait;
 
-    const INDEX_SUFFIX = 'page';
+    const INDEX_SUFFIX = 'grid-element';
 
     /**
      * @var ElasticaService
      */
     private $elasticaService;
+
 
     public function __construct()
     {
@@ -32,31 +32,17 @@ class FilterIndexPageItemExtension extends SiteTreeExtension implements IndexIte
 
     }
 
-    public function onAfterPublish(&$original)
-    {
-        $this->elasticaService->setIndex(self::getIndexName())->add($this);
-    }
-
-    public function onAfterUnpublish()
-    {
-        $this->elasticaService->setIndex(self::getIndexName())->delete($this);
-    }
 
     public function updateElasticaFields(&$fields)
     {
-        $fields['ParentID'] = ['type' => 'integer'];
         $fields['PageId'] = ['type' => 'keyword'];
-        $fields['Title'] = [
-            'type' => 'text',
-            'fielddata' => true,
-            'fields' => [
-                'completion' => [
-                    'type' => 'completion'
-                ]
-            ]
-        ];
+        $fields['ElementTitle'] = ['type' => 'text'];
         $fields['Content'] = ['type' => 'text'];
-        $fields['Url'] = ['type' => 'text'];
+        $fields['Title'] = ['type' => 'text'];
+        $fields['Url'] = [
+            'type' => 'text',
+            'fielddata' => true
+        ];
         $fields[ElasticaService::SUGGEST_FIELD_NAME] = [
             'type' => 'completion',
             'analyzer' => 'suggestion'
@@ -65,18 +51,44 @@ class FilterIndexPageItemExtension extends SiteTreeExtension implements IndexIte
 
     public function updateElasticaDocumentData(&$data)
     {
-        $data['PageId'] = $this->owner->getElasticaPageId();
-        $data['ParentID'] = $this->owner->ParentID;
-        $data['Title'] = $this->owner->Title;
-        $data['Content'] = $this->owner->Content;
-        $data['Url'] = $this->owner->AbsoluteLink();
+        $page = $this->owner->getPage();
 
-        if (!isset($data[ElasticaService::SUGGEST_FIELD_NAME])) {
-            $data[ElasticaService::SUGGEST_FIELD_NAME] = $this->fillSugest(['Title','Content'],$data);
+        $data['PageId'] = $page?$page->getElasticaPageId():'none';
+        $data['ElementTitle'] = $this->owner->getTitle();
+
+        if ($this->owner->hasField('Content') && !isset($data['Content'])) {
+            $data['Content'] = $this->owner->Content;
         }
 
+        if ($page) {
+            $data['Url'] = $page->AbsoluteLink();
+            $data['Title'] = $page->getTitle();
+        }
+        if ($data['PageId'] !== 'none' && !isset($data[ElasticaService::SUGGEST_FIELD_NAME])){
+            $data[ElasticaService::SUGGEST_FIELD_NAME] = $this->fillSugest(['Title','Content'], $data);
+        }
     }
 
+
+    public function onAfterPublish()
+    {
+        $this->updateElasticaDocument();
+    }
+
+    public function onAfterUnpublish()
+    {
+        $this->elasticaService->setIndex(self::getIndexName())->delete($this);
+    }
+
+    public function onBeforeDelete()
+    {
+        $this->onAfterUnpublish();
+    }
+
+    public function updateElasticaDocument()
+    {
+        $this->elasticaService->setIndex(self::getIndexName())->add($this);
+    }
 
     public static function getIndexName()
     {
@@ -89,10 +101,11 @@ class FilterIndexPageItemExtension extends SiteTreeExtension implements IndexIte
         return $name;
     }
 
-    public static function  getExtendedClasses()
+    public static function getExtendedClasses()
     {
         $classes = [];
-        foreach (ClassInfo::subclassesFor(SiteTree::class) as $candidate) {
+        $candidates = ClassInfo::subclassesFor(DataObject::class);
+        foreach ($candidates as $candidate) {
             if (singleton($candidate)->hasExtension(self::class)) {
                 $classes[] = $candidate;
             }
