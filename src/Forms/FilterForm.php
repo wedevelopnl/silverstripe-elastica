@@ -32,9 +32,10 @@ class FilterForm extends Form
 
         parent::__construct($controller, $name, $fields, $actions);
 
-        $sorts = array_keys($this->getController()->config()->get('sorts'));
+        $sorts = $this->getController()->config()->get('sorts');
         if ($sorts) {
-            $fields->push(DropdownField::create('sort', '', array_combine($sorts, $sorts)));
+            $sortKeys = array_keys($sorts);
+            $fields->push(DropdownField::create('sort', '', array_combine($sortKeys, $sortKeys)));
         }
 
         foreach ($this->getController()->getFilters() as $filter) {
