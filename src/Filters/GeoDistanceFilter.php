@@ -4,6 +4,7 @@ namespace TheWebmen\Elastica\Filters;
 
 use SilverStripe\Control\Controller;
 use SilverStripe\Control\RequestHandler;
+use SilverStripe\Core\Environment;
 use SilverStripe\Forms\Form;
 use TheWebmen\Elastica\Forms\GeoDistanceFilterField;
 
@@ -25,10 +26,13 @@ class GeoDistanceFilter extends Filter
         $query = null;
         $value = $this->getFilterField()->Value();
         $search = urlencode($value['Search']);
-        
+
         $this->extend('updateValue', $value);
 
         $mapsKey = self::config()->get('maps_key');
+        if (!$mapsKey) {
+            $mapsKey = Environment::getEnv('GOOGLE_MAPS_API_KEY');
+        }
         if (!$mapsKey) {
             throw new \Exception('Maps key is empty');
         }
