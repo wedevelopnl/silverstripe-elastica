@@ -53,14 +53,14 @@ class GridElementIndexExtension extends DataExtension implements IndexItemInterf
     {
         $page = $this->owner->getPage();
 
-        $data['PageId'] = $page?$page->getElasticaPageId():'none';
+        $data['PageId'] = $page && $page->isPublished() ? $page->getElasticaPageId() : 'none';
         $data['ElementTitle'] = $this->owner->getTitle();
 
         if ($this->owner->hasField('Content') && !isset($data['Content'])) {
             $data['Content'] = $this->owner->Content;
         }
 
-        if ($page) {
+        if ($page && $page->isPublished()) {
             $data['Url'] = $page->AbsoluteLink();
             $data['Title'] = $page->getTitle();
         }
@@ -68,7 +68,6 @@ class GridElementIndexExtension extends DataExtension implements IndexItemInterf
             $data[ElasticaService::SUGGEST_FIELD_NAME] = $this->fillSugest(['Title','Content'], $data);
         }
     }
-
 
     public function onAfterPublish()
     {
