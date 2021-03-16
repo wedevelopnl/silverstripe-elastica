@@ -1,6 +1,7 @@
 <?php
 namespace TheWebmen\Elastica\Extensions;
 
+use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\ORM\DataExtension;
 use TheWebmen\Elastica\Extensions\FilterIndexDataObjectItemExtension;
 use TheWebmen\Elastica\Services\ElasticaService;
@@ -53,20 +54,35 @@ class GridElementIndexExtension extends DataExtension implements IndexItemInterf
     {
         $page = $this->owner->getPage();
 
-        $data['PageId'] = $page && $page->isPublished() ? $page->getElasticaPageId() : 'none';
+        $pageIsVisible = $page && $this->getPageVisibility($page);
+
+        $data['PageId'] = $pageIsVisible ? $page->getElasticaPageId() : 'none';
         $data['ElementTitle'] = $this->owner->getTitle();
 
         if ($this->owner->hasField('Content') && !isset($data['Content'])) {
             $data['Content'] = $this->owner->Content;
         }
 
-        if ($page && $page->isPublished()) {
+        if ($pageIsVisible) {
             $data['Url'] = $page->AbsoluteLink();
             $data['Title'] = $page->getTitle();
         }
-        if ($data['PageId'] !== 'none' && !isset($data[ElasticaService::SUGGEST_FIELD_NAME])){
-            $data[ElasticaService::SUGGEST_FIELD_NAME] = $this->fillSugest(['Title','Content'], $data);
+        if ($data['PageId'] !== 'none' && !isset($data[ElasticaService::SUGGEST_FIELD_NAME])) {
+            $data[ElasticaService::SUGGEST_FIELD_NAME] = $this->fillSugest(['Title', 'Content'], $data);
         }
+    }
+
+    protected function getPageVisibility(SiteTree $page)
+    {
+        if (!$page->isPublished()) {
+            return false;
+        }
+
+        if (!$page->getParent()) {
+            return true;
+        }
+
+        return $this->getPageVisibility($page->getParent());
     }
 
     public function onAfterPublish()

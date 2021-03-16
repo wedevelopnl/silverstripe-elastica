@@ -6,6 +6,7 @@ use SilverStripe\Core\Environment;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\CMS\Model\SiteTreeExtension;
 use SilverStripe\Core\Injector\Injector;
+use SilverStripe\ORM\DataObject;
 use TheWebmen\Elastica\Services\ElasticaService;
 use TheWebmen\Elastica\Traits\FilterIndexItemTrait;
 use TheWebmen\Elastica\Interfaces\IndexItemInterface;
@@ -39,7 +40,19 @@ class FilterIndexPageItemExtension extends SiteTreeExtension implements IndexIte
 
     public function onAfterUnpublish()
     {
+        $this->updateElementsIndex();
         $this->elasticaService->setIndex(self::getIndexName())->delete($this);
+    }
+
+    protected function updateElementsIndex()
+    {
+        /** @var DataObject $element */
+        foreach ($this->owner->findOwned() as $element) {
+            $elementClass = get_class($element);
+            if (in_array($elementClass, GridElementIndexExtension::getExtendedClasses())) {
+                $element->updateElasticaDocument();
+            }
+        }
     }
 
     public function updateElasticaFields(&$fields)
