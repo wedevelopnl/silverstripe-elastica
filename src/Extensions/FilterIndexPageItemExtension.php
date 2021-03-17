@@ -36,18 +36,31 @@ class FilterIndexPageItemExtension extends SiteTreeExtension implements IndexIte
     public function onAfterPublish(&$original)
     {
         $this->elasticaService->setIndex(self::getIndexName())->add($this);
+
+        $this->updateElementsIndex($this->owner);
+        $this->updateChildrenElements($this->owner);
     }
 
     public function onAfterUnpublish()
     {
-        $this->updateElementsIndex();
+        $this->updateElementsIndex($this->owner);
+        $this->updateChildrenElements($this->owner);
+
         $this->elasticaService->setIndex(self::getIndexName())->delete($this);
     }
 
-    protected function updateElementsIndex()
+    protected function updateChildrenElements(SiteTree $page)
+    {
+        foreach ($page->Children() as $pageChild) {
+            $this->updateElementsIndex($pageChild);
+            $this->updateChildrenElements($pageChild);
+        }
+    }
+
+    protected function updateElementsIndex($page)
     {
         /** @var DataObject $element */
-        foreach ($this->owner->findOwned() as $element) {
+        foreach ($page->findOwned() as $element) {
             $elementClass = get_class($element);
             if (in_array($elementClass, GridElementIndexExtension::getExtendedClasses())) {
                 $element->updateElasticaDocument();
