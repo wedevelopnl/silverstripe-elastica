@@ -4,6 +4,7 @@ namespace TheWebmen\Elastica\Traits;
 
 use SilverStripe\Core\Environment;
 use SilverStripe\ORM\DataObject;
+use SilverStripe\CMS\Model\SiteTree;
 
 /**
  * @property FilterIndexItemTrait owner
@@ -59,5 +60,18 @@ trait FilterIndexItemTrait
     public function getElasticaPageId()
     {
         return implode('_', [Environment::getEnv('ELASTICSEARCH_INDEX'), $this->owner->getElasticaId()]);
+    }
+
+    public function getPageVisibility(SiteTree $page)
+    {
+        if (!$page->isPublished()) {
+            return false;
+        }
+
+        if (!$page->getParent()) {
+            return true;
+        }
+
+        return $this->getPageVisibility($page->getParent());
     }
 }

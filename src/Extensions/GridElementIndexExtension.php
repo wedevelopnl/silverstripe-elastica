@@ -72,19 +72,6 @@ class GridElementIndexExtension extends DataExtension implements IndexItemInterf
         }
     }
 
-    protected function getPageVisibility(SiteTree $page)
-    {
-        if (!$page->isPublished()) {
-            return false;
-        }
-
-        if (!$page->getParent()) {
-            return true;
-        }
-
-        return $this->getPageVisibility($page->getParent());
-    }
-
     public function onAfterPublish()
     {
         $this->updateElasticaDocument();
