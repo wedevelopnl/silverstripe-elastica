@@ -6,6 +6,7 @@ use SilverStripe\Core\Environment;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\CMS\Model\SiteTreeExtension;
 use SilverStripe\Core\Injector\Injector;
+use SilverStripe\ORM\DataObject;
 use TheWebmen\Elastica\Services\ElasticaService;
 use TheWebmen\Elastica\Traits\FilterIndexItemTrait;
 use TheWebmen\Elastica\Interfaces\IndexItemInterface;
@@ -35,17 +36,53 @@ class FilterIndexPageItemExtension extends SiteTreeExtension implements IndexIte
     public function onAfterPublish(&$original)
     {
         $this->elasticaService->setIndex(self::getIndexName())->add($this);
+
+        $this->updateElementsIndex($this->owner);
+        $this->updateChildren($this->owner);
     }
 
     public function onAfterUnpublish()
     {
+        $this->updateElementsIndex($this->owner);
+        $this->updateChildren($this->owner);
+
         $this->elasticaService->setIndex(self::getIndexName())->delete($this);
+    }
+
+    protected function updateChildren(SiteTree $page)
+    {
+        foreach ($page->Children() as $pageChild) {
+            if ($pageChild->isPublished()) {
+                $pageChild->updateElasticaDocument();
+            } else {
+                $this->elasticaService->setIndex(self::getIndexName())->delete($pageChild);
+            }
+            $this->updateElementsIndex($pageChild);
+            $this->updateChildren($pageChild);
+        }
+    }
+
+    protected function updateElementsIndex($page)
+    {
+        /** @var DataObject $element */
+        foreach ($page->findOwned() as $element) {
+            $elementClass = get_class($element);
+            if (in_array($elementClass, GridElementIndexExtension::getExtendedClasses())) {
+                $element->updateElasticaDocument();
+            }
+        }
+    }
+
+    public function updateElasticaDocument()
+    {
+        $this->elasticaService->setIndex(self::getIndexName())->add($this);
     }
 
     public function updateElasticaFields(&$fields)
     {
         $fields['ParentID'] = ['type' => 'integer'];
         $fields['PageId'] = ['type' => 'keyword'];
+        $fields['Visible'] = ['type' => 'boolean'];
         $fields['Title'] = [
             'type' => 'text',
             'fielddata' => true,
@@ -67,6 +104,7 @@ class FilterIndexPageItemExtension extends SiteTreeExtension implements IndexIte
     {
         $data['PageId'] = $this->owner->getElasticaPageId();
         $data['ParentID'] = $this->owner->ParentID;
+        $data['Visible'] = $this->getPageVisibility($this->owner);
         $data['Title'] = $this->owner->Title;
         $data['Content'] = $this->owner->Content;
         $data['Url'] = $this->owner->AbsoluteLink();
@@ -76,8 +114,7 @@ class FilterIndexPageItemExtension extends SiteTreeExtension implements IndexIte
         }
 
     }
-
-
+    
     public static function getIndexName()
     {
         $name =  sprintf('content-%s-%s', Environment::getEnv('ELASTICSEARCH_INDEX'), self::INDEX_SUFFIX);

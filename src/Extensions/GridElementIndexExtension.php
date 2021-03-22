@@ -1,8 +1,8 @@
 <?php
 namespace TheWebmen\Elastica\Extensions;
 
+use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\ORM\DataExtension;
-use TheWebmen\Elastica\Extensions\FilterIndexDataObjectItemExtension;
 use TheWebmen\Elastica\Services\ElasticaService;
 use SilverStripe\Core\Injector\Injector;
 use TheWebmen\Elastica\Traits\FilterIndexItemTrait;
@@ -13,7 +13,6 @@ use SilverStripe\ORM\DataObject;
 
 class GridElementIndexExtension extends DataExtension implements IndexItemInterface
 {
-
     use FilterIndexItemTrait;
 
     const INDEX_SUFFIX = 'grid-element';
@@ -23,7 +22,6 @@ class GridElementIndexExtension extends DataExtension implements IndexItemInterf
      */
     private $elasticaService;
 
-
     public function __construct()
     {
         parent::__construct();
@@ -32,10 +30,10 @@ class GridElementIndexExtension extends DataExtension implements IndexItemInterf
 
     }
 
-
     public function updateElasticaFields(&$fields)
     {
         $fields['PageId'] = ['type' => 'keyword'];
+        $fields['Visible'] = ['type' => 'boolean'];
         $fields['ElementTitle'] = ['type' => 'text'];
         $fields['Content'] = ['type' => 'text'];
         $fields['Title'] = ['type' => 'text'];
@@ -53,22 +51,29 @@ class GridElementIndexExtension extends DataExtension implements IndexItemInterf
     {
         $page = $this->owner->getPage();
 
-        $data['PageId'] = $page?$page->getElasticaPageId():'none';
+        if ($page) {
+            $data['PageId'] = $page->getElasticaPageId();
+            $data['Visible'] = $this->getPageVisibility($page);
+        } else {
+            $data['PageId'] = 'none';
+            $data['Visible'] = false;
+        }
+
         $data['ElementTitle'] = $this->owner->getTitle();
 
         if ($this->owner->hasField('Content') && !isset($data['Content'])) {
             $data['Content'] = $this->owner->Content;
         }
 
-        if ($page) {
+        if ($data['Visible']) {
             $data['Url'] = $page->AbsoluteLink();
             $data['Title'] = $page->getTitle();
         }
-        if ($data['PageId'] !== 'none' && !isset($data[ElasticaService::SUGGEST_FIELD_NAME])){
-            $data[ElasticaService::SUGGEST_FIELD_NAME] = $this->fillSugest(['Title','Content'], $data);
+
+        if ($data['Visible'] && !isset($data[ElasticaService::SUGGEST_FIELD_NAME])) {
+            $data[ElasticaService::SUGGEST_FIELD_NAME] = $this->fillSugest(['Title', 'Content'], $data);
         }
     }
-
 
     public function onAfterPublish()
     {
