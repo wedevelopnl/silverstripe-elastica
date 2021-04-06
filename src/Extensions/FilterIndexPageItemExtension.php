@@ -51,7 +51,7 @@ class FilterIndexPageItemExtension extends SiteTreeExtension implements IndexIte
 
     protected function updateChildren(SiteTree $page)
     {
-        foreach ($page->Children() as $pageChild) {
+        foreach ($page->stageChildren(true) as $pageChild) {
             if ($pageChild->isPublished()) {
                 $pageChild->updateElasticaDocument();
             } else {
