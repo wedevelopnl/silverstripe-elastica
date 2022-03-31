@@ -33,7 +33,7 @@ class GeoDistanceFilter extends Filter
             throw new \Exception('Maps key is empty');
         }
 
-        if ($value && $value['Search']) {
+        if ($search) {
             $data = file_get_contents("https://maps.googleapis.com/maps/api/geocode/json?address=" . urlencode($search) . "&key={$mapsKey}");
             $data = json_decode($data, true);
             if ($data['status'] == 'OK') {
