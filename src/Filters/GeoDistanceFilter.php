@@ -63,7 +63,7 @@ class GeoDistanceFilter extends Filter
                 $data = $this->cache->get($dataHashKey);
             } else {
                 $data = file_get_contents("https://maps.googleapis.com/maps/api/geocode/json?address=" . urlencode($search) . "&key={$mapsKey}");
-                $this->cache->set($dataHashKey, 24 * 3600);
+                $this->cache->set($dataHashKey, $data, 24 * 3600);
             }
 
             $data = json_decode($data, true);
