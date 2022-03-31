@@ -24,8 +24,8 @@ class GeoDistanceFilter extends Filter
     {
         $query = null;
         $value = $this->getFilterField()->Value();
-        $search = urlencode($value['Search']);
-        
+        $search = $value && $value['Search'] ? urlencode($value['Search']) : null;
+
         $this->extend('updateValue', $value);
 
         $mapsKey = self::config()->get('maps_key');
@@ -33,7 +33,7 @@ class GeoDistanceFilter extends Filter
             throw new \Exception('Maps key is empty');
         }
 
-        if ($value['Search']) {
+        if ($value && $value['Search']) {
             $data = file_get_contents("https://maps.googleapis.com/maps/api/geocode/json?address=" . urlencode($search) . "&key={$mapsKey}");
             $data = json_decode($data, true);
             if ($data['status'] == 'OK') {
