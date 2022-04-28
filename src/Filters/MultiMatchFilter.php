@@ -63,6 +63,15 @@ class MultiMatchFilter extends Filter
         return $fields;
     }
 
+    public function onBeforeWrite()
+    {
+        parent::onBeforeWrite();
+
+        if (empty($this->Placeholder)) {
+            $this->Placeholder = $this->Name;
+        }
+    }
+
     public function getElasticaQuery()
     {
         $query = null;

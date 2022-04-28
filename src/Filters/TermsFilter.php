@@ -45,6 +45,15 @@ class TermsFilter extends Filter
         return $fields;
     }
 
+    public function onBeforeWrite()
+    {
+        parent::onBeforeWrite();
+
+        if (empty($this->Placeholder)) {
+            $this->Placeholder = $this->Name;
+        }
+    }
+
     public function getElasticaQuery()
     {
         $value = $this->getFilterField()->Value();
