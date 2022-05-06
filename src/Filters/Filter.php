@@ -38,6 +38,10 @@ class Filter extends DataObject
         'Sort' => 'Int'
     ];
 
+    private static $required_fields = [
+        'Name',
+    ];
+
     private static $has_one = [
         'Page' => SiteTree::class
     ];
@@ -77,6 +81,12 @@ class Filter extends DataObject
         ]);
         if ($filters->count() > 0) {
             $result->addError('Name already exists');
+        }
+
+        foreach (self::$required_fields as $requiredField) {
+            if (empty($this->{$requiredField})) {
+                $result->addError(sprintf('%s is required', $requiredField));
+            }
         }
 
         return $result;
