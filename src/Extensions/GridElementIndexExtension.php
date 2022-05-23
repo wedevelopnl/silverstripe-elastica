@@ -66,7 +66,7 @@ class GridElementIndexExtension extends DataExtension implements IndexItemInterf
         }
 
         if ($data['Visible']) {
-            $data['Url'] = $page->AbsoluteLink();
+            $data['Url'] = $page->getAbsoluteLiveLink(false);
             $data['Title'] = $page->getTitle();
         }
 
