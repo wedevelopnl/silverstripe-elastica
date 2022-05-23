@@ -107,14 +107,14 @@ class FilterIndexPageItemExtension extends SiteTreeExtension implements IndexIte
         $data['Visible'] = $this->getPageVisibility($this->owner);
         $data['Title'] = $this->owner->Title;
         $data['Content'] = $this->owner->Content;
-        $data['Url'] = $this->owner->AbsoluteLink();
+        $data['Url'] = $this->owner->getAbsoluteLiveLink(false);
 
         if (!isset($data[ElasticaService::SUGGEST_FIELD_NAME])) {
             $data[ElasticaService::SUGGEST_FIELD_NAME] = $this->fillSugest(['Title','Content'],$data);
         }
 
     }
-    
+
     public static function getIndexName()
     {
         $name =  sprintf('content-%s-%s', Environment::getEnv('ELASTICSEARCH_INDEX'), self::INDEX_SUFFIX);
