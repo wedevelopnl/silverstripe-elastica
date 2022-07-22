@@ -123,6 +123,7 @@ class FacetIndexItemsList extends ViewableData implements SS_List, Limitable
     /**
      * @return \ArrayIterator
      */
+    #[\ReturnTypeWillChange]
     public function getIterator()
     {
         return new \ArrayIterator($this->toArray());
@@ -131,6 +132,7 @@ class FacetIndexItemsList extends ViewableData implements SS_List, Limitable
     /**
      * @return int
      */
+    #[\ReturnTypeWillChange]
     public function count()
     {
         return $this->getResultSet()->count();
@@ -170,19 +172,23 @@ class FacetIndexItemsList extends ViewableData implements SS_List, Limitable
     {
     }
 
+    #[\ReturnTypeWillChange]
     public function offsetExists($key)
     {
     }
 
+    #[\ReturnTypeWillChange]
     public function offsetGet($key)
     {
     }
 
+    #[\ReturnTypeWillChange]
     public function offsetSet($key, $value)
     {
         user_error("Can't alter items in a DataList using array-access", E_USER_ERROR);
     }
 
+    #[\ReturnTypeWillChange]
     public function offsetUnset($key)
     {
         user_error("Can't alter items in a DataList using array-access", E_USER_ERROR);

@@ -4,11 +4,11 @@
   "type": "silverstripe-vendormodule",
   "keywords": ["elastica", "elasticsearch", "facet", "filters"],
   "require": {
-    "ext-json": "*",
-    "silverstripe/framework": "^4",
-    "ruflin/elastica": "^7.0",
-    "symbiote/silverstripe-gridfieldextensions": "^3.2",
-    "silverstripe/tagfield": "2.3.0"
+      "ext-json": "*",
+      "silverstripe/framework": "^4.11",
+      "ruflin/elastica": "^7.1",
+      "symbiote/silverstripe-gridfieldextensions": "^3.4",
+      "silverstripe/tagfield": "^2.9"
   },
   "autoload": {
     "psr-4": {
