@@ -42,7 +42,7 @@ class MultiMatchFilter extends Filter
                 'FieldName',
                 'FieldName',
                 array_combine($availableFields, $availableFields),
-                explode(',', $this->FieldName)
+                $this->FieldName ? explode(',', $this->FieldName) : null
             )
         );
 
@@ -56,7 +56,7 @@ class MultiMatchFilter extends Filter
                 'AutocompleteTitleFieldName',
                 'Autocomplete title field name',
                 array_combine($availableFields, $availableFields),
-                explode(',', $this->AutocompleteTitleFieldName)
+                $this->AutocompleteTitleFieldName ? explode(',', $this->AutocompleteTitleFieldName) : null
             )
         ]);
 
