@@ -39,24 +39,14 @@ class DataObjectIndexExtension extends DataExtension implements IndexItemInterfa
         $data['Title'] = $this->owner->Title;
     }
 
-    public function onAfterPublish()
-    {
-        $this->updateElasticaDocument();
-    }
-
-    public function onAfterUnpublish()
-    {
-        $this->elasticaService->setIndex(self::getIndexName())->delete($this);
-    }
-
-    public function onBeforeDelete()
-    {
-        $this->onAfterUnpublish();
-    }
-
-    public function updateElasticaDocument()
+    public function onAfterWrite()
     {
         $this->elasticaService->setIndex(self::getIndexName())->add($this);
+    }
+
+    public function onAfterDelete()
+    {
+        $this->elasticaService->setIndex(self::getIndexName())->delete($this);
     }
 
     public static function getIndexName()
