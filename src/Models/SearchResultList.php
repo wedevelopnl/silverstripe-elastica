@@ -70,7 +70,7 @@ class SearchResultList extends ViewableData
 
         foreach ($rows as $row) {
             $data = $row->getData();
-            $content = \SilverStripe\ORM\FieldType\DBHTMLText::create()->setValue($data['Content']);
+            $content = \SilverStripe\ORM\FieldType\DBHTMLText::create()->setValue($data['Content'] ?? null);
             $data['Content'] = $content;
             $dataList->add($data);
         }

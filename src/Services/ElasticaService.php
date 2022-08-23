@@ -10,6 +10,7 @@ use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Versioned\Versioned;
+use TheWebmen\Elastica\Extensions\DataObjectIndexExtension;
 use TheWebmen\Elastica\Extensions\FilterIndexDataObjectItemExtension;
 use TheWebmen\Elastica\Extensions\FilterIndexItemExtension;
 use TheWebmen\Elastica\Extensions\FilterIndexPageItemExtension;
@@ -212,7 +213,8 @@ class ElasticaService
         return [
             FilterIndexPageItemExtension::class,
             FilterIndexDataObjectItemExtension::class,
-            GridElementIndexExtension::class
+            GridElementIndexExtension::class,
+            DataObjectIndexExtension::class,
         ];
     }
 
