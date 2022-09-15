@@ -43,7 +43,7 @@ class GeoDistanceFilter extends Filter
         $query = null;
         $value = $this->getFilterField()->Value();
 
-        $search = $value && $value['Search'] ? urlencode($value['Search']) : null;
+        $search = $value && $value['Search'] ? urlencode($value['Search']) : '';
 
         $this->extend('updateValue', $value);
 
