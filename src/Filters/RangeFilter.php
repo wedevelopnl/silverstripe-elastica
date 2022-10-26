@@ -1,57 +1,51 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TheWebmen\Elastica\Filters;
 
+use Elastica\Aggregation\AbstractAggregation;
 use Elastica\Query\AbstractQuery;
-use SilverStripe\Control\Controller;
-use SilverStripe\Control\RequestHandler;
-use SilverStripe\Forms\Form;
 use TheWebmen\Elastica\Forms\RangeFilterField;
+use TheWebmen\Elastica\Interfaces\AggregatableFilterInterface;
+use TheWebmen\Elastica\Interfaces\FilterFieldInterface;
+use TheWebmen\Elastica\Interfaces\FilterInterface;
 
-/**
- * @method RangeFilterField getFilterField
- */
-class RangeFilter extends Filter
+final class RangeFilter extends Filter implements FilterInterface, AggregatableFilterInterface
 {
-    private static $singular_name = 'Range';
+    /** @config */
+    private static string $singular_name = 'Range';
 
-    public function getElasticaQuery()
+    public function getElasticaQuery(): ?AbstractQuery
     {
-        $query = null;
         $value = $this->getFilterField()->Value();
 
-        if (
-            is_array($value) &&
-            isset($value['From']) && 
-            isset($value['To']) && 
-            $value['From'] != '' && $value['To'] != ''
-        ) {
-            $query = new \Elastica\Query\Range($this->FieldName, [
-                'gte' => (int)$value['From'],
-                'lte' => (int)$value['To'],
-            ]);
+        if (empty($value['From']) || empty($value['To'])) {
+            return null;
         }
 
-        return $query;
+        return new \Elastica\Query\Range($this->FieldName, [
+            'gte' => (int)$value['From'],
+            'lte' => (int)$value['To'],
+        ]);
     }
 
-    public function generateFilterField()
+    public function generateFilterField(): FilterFieldInterface
     {
         return new RangeFilterField($this->Name, $this->Title);
     }
 
     /**
      * @param Filter[] $filters
-     * @return \Elastica\Aggregation\GlobalAggregation|null
      */
-    public function getAggregation(array $filters)
+    public function getAggregation(array $filters): AbstractAggregation
     {
         $query = new \Elastica\Query\BoolQuery();
 
         foreach ($filters as $filter) {
             $filterQuery = $filter->getElasticaQuery();
 
-            if ($this->ID != $filter->ID && $filterQuery) {
+            if ($this->ID !== $filter->ID && $filterQuery) {
                 $query->addMust($filterQuery);
             }
         }
@@ -68,17 +62,17 @@ class RangeFilter extends Filter
         $filter->addAggregation($min);
         $filter->addAggregation($max);
 
-        $aggregation = new \Elastica\Aggregation\GlobalAggregation($this->ID);
+        $aggregation = new \Elastica\Aggregation\GlobalAggregation((string)$this->ID);
         $aggregation->addAggregation($filter);
 
         return $aggregation;
     }
 
-    public function addAggregation(array $aggregation)
+    public function addAggregation(array $aggregation): void
     {
         $this->getFilterField()->setValue([
             'From' => $aggregation['filter']['min']['value'],
-            'To' => $aggregation['filter']['max']['value']
+            'To' => $aggregation['filter']['max']['value'],
         ]);
     }
 }

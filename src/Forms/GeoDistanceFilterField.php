@@ -1,64 +1,59 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TheWebmen\Elastica\Forms;
 
 use SilverStripe\Forms\DropdownField;
 use SilverStripe\Forms\FormField;
 use SilverStripe\Forms\TextField;
+use SilverStripe\ORM\DataObject;
 use TheWebmen\Elastica\Interfaces\FilterFieldInterface;
 use TheWebmen\Elastica\Traits\FilterFieldTrait;
 
-class GeoDistanceFilterField extends FormField implements FilterFieldInterface
+final class GeoDistanceFilterField extends FormField implements FilterFieldInterface
 {
     use FilterFieldTrait;
 
-    private static $distance_options = [
-        '10km' => '10 Km',
-        '20km' => '20 Km',
-        '50km' => '50 Km',
-        '100km' => '100 Km',
-        '150km' => '150 Km',
-        '200km' => '200 Km',
-    ];
+    private TextField $searchField;
 
-    protected $searchField = null;
-
-    protected $distanceField = null;
+    private DropdownField $distanceField;
 
     public function __construct($name, $title)
     {
         $this->searchField = TextField::create(
             $name . '[Search]',
-            _t(self::class . '.SEARCH_TITLE', 'Location')
+            _t(self::class . '.SEARCH_TITLE', 'Location'),
         );
 
         $this->distanceField = DropdownField::create(
             $name . '[Distance]',
             _t(self::class . '.DISTANCE_TITLE', 'Distance'),
-            self::config()->get('distance_options')
+            self::config()->get('distance_options') ?? [],
         );
 
         parent::__construct($name, $title);
     }
 
-    public function setValue($value, $data = null)
+    /**
+     * @param array<string, mixed>|DataObject $data
+     */
+    public function setValue($value, $data = null): self
     {
         parent::setValue($value, $data);
 
-        if (is_array($value)) {
-            $this->searchField->setValue($value['Search']);
-            $this->distanceField->setValue($value['Distance']);
-        }
+        $this->searchField->setValue($value['Search'] ?? null);
+        $this->distanceField->setValue($value['Distance'] ?? null);
 
         return $this;
     }
 
-    public function getSearchField()
+    public function getSearchField(): TextField
     {
         return $this->searchField;
     }
 
-    public function getDistanceField()
+    public function getDistanceField(): DropdownField
     {
         return $this->distanceField;
     }

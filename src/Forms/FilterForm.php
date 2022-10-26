@@ -1,34 +1,27 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TheWebmen\Elastica\Forms;
 
-use Elastica\Aggregation\GlobalAggregation;
-use Elastica\Query\AbstractQuery;
-use SilverStripe\Control\Controller;
 use SilverStripe\Control\RequestHandler;
-use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Forms\DropdownField;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\Form;
 use SilverStripe\Forms\FormAction;
 use SilverStripe\Forms\FormField;
-use SilverStripe\ORM\DataList;
-use SilverStripe\ORM\RelationList;
 use TheWebmen\Elastica\Extensions\FilterPageControllerExtension;
-use TheWebmen\Elastica\Filters\Filter;
-use TheWebmen\Elastica\Interfaces\FilterFieldInterface;
-use TheWebmen\Elastica\Model\FacetIndexItemsList;
-use TheWebmen\Elastica\Services\ElasticaService;
+use TheWebmen\Elastica\Interfaces\AggregatableFilterInterface;
 
 /**
- * @method RequestHandler|FilterPageControllerExtension getController
+ * @method FilterPageControllerExtension getController()
  */
-class FilterForm extends Form
+final class FilterForm extends Form
 {
     public function __construct(RequestHandler $controller, $name = self::DEFAULT_NAME)
     {
-        $fields = new FieldList();
-        $actions = new FieldList();
+        $fields = FieldList::create();
+        $actions = FieldList::create();
 
         parent::__construct($controller, $name, $fields, $actions);
 
@@ -40,9 +33,9 @@ class FilterForm extends Form
 
         foreach ($this->getController()->getFilters() as $filter) {
             $field = $filter->generateFilterField();
-            if ($field instanceof FilterFieldInterface) {
-                $field->setFilter($filter);
-                $filter->setFilterField($field);
+            $field->setFilter($filter);
+            $filter->setFilterField($field);
+            if ($field instanceof FormField) {
                 $fields->push($field);
             }
         }
@@ -51,16 +44,17 @@ class FilterForm extends Form
 
         $this->loadDataFrom($this->getController()->getRequest()->getVars());
 
-        /** @var Filter $filter */
         foreach ($this->getController()->getFilters() as $filter) {
-            if ($filter->getAggregation($this->getController()->getFilters())) {
-                $aggregation = $this->getController()
-                    ->getFilterList()
-                    ->getResultSet()
-                    ->getAggregation($filter->ID);
-
-                $filter->addAggregation($aggregation);
+            if (!$filter instanceof AggregatableFilterInterface) {
+                continue;
             }
+
+            $aggregation = $this->getController()
+                ->getFilterList()
+                ->getResultSet()
+                ->getAggregation((string)$filter->ID);
+
+            $filter->addAggregation($aggregation);
         }
 
         $actions->push(FormAction::create('', 'Zoeken')->setAttribute('name', ''));

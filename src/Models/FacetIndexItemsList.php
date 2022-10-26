@@ -1,39 +1,34 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TheWebmen\Elastica\Model;
 
+use Elastica\Index;
+use Elastica\Query;
+use Elastica\ResultSet;
 use SilverStripe\CMS\Model\SiteTree;
-use SilverStripe\Core\Injector\Injector;
+use SilverStripe\ORM\ArrayList;
 use SilverStripe\ORM\Limitable;
 use SilverStripe\ORM\Map;
 use SilverStripe\ORM\SS_List;
 use SilverStripe\View\ViewableData;
 use TheWebmen\Elastica\Services\ElasticaService;
 
-class FacetIndexItemsList extends ViewableData implements SS_List, Limitable
+final class FacetIndexItemsList extends ViewableData implements SS_List, Limitable
 {
+    private Index $index;
 
-    /**
-     * @var \Elastica\Index
-     */
-    protected $index;
+    private Query $query;
 
-    /**
-     * @var \Elastica\Query
-     */
-    protected $query;
+    private ?ResultSet $resultSet = null;
 
-    /**
-     * @var \Elastica\ResultSet
-     */
-    protected $resultSet;
-
-    public function __construct(\Elastica\Index $index, \Elastica\Query $query)
+    public function __construct(Index $index, Query $query)
     {
+        parent::__construct();
+
         $this->index = $index;
         $this->query = $query;
-
-        parent::__construct();
     }
 
     public function __clone()
@@ -41,25 +36,18 @@ class FacetIndexItemsList extends ViewableData implements SS_List, Limitable
         $this->resultSet = null;
     }
 
-
-    public function getResultSet()
+    public function getResultSet(): ResultSet
     {
         if (!$this->resultSet) {
-
-            /** @var ElasticaService $elasticaService */
-            $elasticaService = Injector::inst()->get('ElasticaService')->setIndex($this->index->getName());
-
-            $this->resultSet = $elasticaService->search($this->query);
+            $this->resultSet = ElasticaService::singleton()
+                ->setIndex($this->index->getName())
+                ->search($this->query);
         }
+
         return $this->resultSet;
     }
 
-    /**
-     * @param int $limit
-     * @param int $offset
-     * @return FacetIndexItemsList
-     */
-    public function limit($limit, $offset = 0)
+    public function limit($limit, $offset = 0): self
     {
         $this->query->setFrom($offset);
         $this->query->setSize($limit);
@@ -68,15 +56,14 @@ class FacetIndexItemsList extends ViewableData implements SS_List, Limitable
     }
 
     /**
-     * @return array
+     * @return SiteTree[]
      */
-    public function toArray()
+    public function toArray(): array
     {
         $rows = $this->getResultSet()->getResults();
         $pages = [];
 
         foreach ($rows as $row) {
-
             $pages[] = SiteTree::get()->byID($row->getData()['ID']);
         }
 
@@ -84,9 +71,9 @@ class FacetIndexItemsList extends ViewableData implements SS_List, Limitable
     }
 
     /**
-     * @return array
+     * @return array<array<string, mixed>>
      */
-    public function toNestedArray()
+    public function toNestedArray(): array
     {
         $result = [];
 
@@ -97,11 +84,7 @@ class FacetIndexItemsList extends ViewableData implements SS_List, Limitable
         return $result;
     }
 
-    /**
-     * @param callable $callback
-     * @return FacetIndexItemsList
-     */
-    public function each($callback)
+    public function each($callback): FacetIndexItemsList
     {
         foreach ($this as $row) {
             $callback($row);
@@ -110,87 +93,78 @@ class FacetIndexItemsList extends ViewableData implements SS_List, Limitable
         return $this;
     }
 
-    /**
-     * @param string $keyField - the 'key' field of the result array
-     * @param string $titleField - the value field of the result array
-     * @return Map
-     */
-    public function map($keyField = 'ID', $titleField = 'Title')
+    public function map($keyField = 'ID', $titleField = 'Title'): Map
     {
         return new Map($this, $keyField, $titleField);
     }
 
     /**
-     * @return \ArrayIterator
+     * @return \ArrayIterator<int, SiteTree>
      */
-    #[\ReturnTypeWillChange]
-    public function getIterator()
+    public function getIterator(): \ArrayIterator
     {
         return new \ArrayIterator($this->toArray());
     }
 
-    /**
-     * @return int
-     */
-    #[\ReturnTypeWillChange]
-    public function count()
+    public function count(): int
     {
         return $this->getResultSet()->count();
     }
 
-    /**
-     * @return int
-     */
-    public function getTotalItems()
+    public function getTotalItems(): int
     {
         $data = $this->getResultSet()->getResponse()->getData();
 
-        return (int) ($data['hits']['total']['value'] ?? 0);
+        return (int)($data['hits']['total']['value'] ?? 0);
     }
 
-    public function first()
+    public function first(): void
     {
     }
 
-    public function last()
+    public function last(): void
     {
     }
 
-    public function find($key, $value)
+    public function find($key, $value): void
     {
     }
 
-    public function column($colName = "ID")
+    /**
+     * @return array<int, mixed>
+     */
+    public function column($colName = "ID"): array
+    {
+        return $this->toArrayList()->column($colName);
+    }
+
+    public function add($item): void
     {
     }
 
-    public function add($item)
+    public function remove($item): void
     {
     }
 
-    public function remove($item)
+    public function offsetExists($key): bool
+    {
+        return $this->toArrayList()->offsetExists($key);
+    }
+
+    public function offsetGet(mixed $key): mixed
     {
     }
 
-    #[\ReturnTypeWillChange]
-    public function offsetExists($key)
+    public function offsetSet($key, $value): void
     {
     }
 
-    #[\ReturnTypeWillChange]
-    public function offsetGet($key)
+    public function offsetUnset($key): void
     {
     }
 
-    #[\ReturnTypeWillChange]
-    public function offsetSet($key, $value)
+    private function toArrayList(): ArrayList
     {
-        user_error("Can't alter items in a DataList using array-access", E_USER_ERROR);
-    }
-
-    #[\ReturnTypeWillChange]
-    public function offsetUnset($key)
-    {
-        user_error("Can't alter items in a DataList using array-access", E_USER_ERROR);
+        return ArrayList::create($this->toArray());
     }
 }

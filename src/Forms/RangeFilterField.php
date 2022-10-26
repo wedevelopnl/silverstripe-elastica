@@ -1,19 +1,22 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TheWebmen\Elastica\Forms;
 
 use SilverStripe\Forms\FormField;
 use SilverStripe\Forms\TextField;
+use SilverStripe\ORM\DataObject;
 use TheWebmen\Elastica\Interfaces\FilterFieldInterface;
 use TheWebmen\Elastica\Traits\FilterFieldTrait;
 
-class RangeFilterField extends FormField implements FilterFieldInterface
+final class RangeFilterField extends FormField implements FilterFieldInterface
 {
     use FilterFieldTrait;
 
-    protected $fromField = null;
+    private TextField $fromField;
 
-    protected $toField = null;
+    private TextField $toField;
 
     public function __construct($name, $title)
     {
@@ -30,7 +33,10 @@ class RangeFilterField extends FormField implements FilterFieldInterface
         parent::__construct($name, $title);
     }
 
-    public function setValue($value, $data = null)
+    /**
+     * @param array<string, string>|DataObject $data
+     */
+    public function setValue($value, $data = null): self
     {
         parent::setValue($value, $data);
 
@@ -42,12 +48,12 @@ class RangeFilterField extends FormField implements FilterFieldInterface
         return $this;
     }
 
-    public function getFromField()
+    public function getFromField(): TextField
     {
         return $this->fromField;
     }
 
-    public function getToField()
+    public function getToField(): TextField
     {
         return $this->toField;
     }

@@ -1,36 +1,41 @@
 <?php
+
+declare(strict_types=1);
+
 namespace TheWebmen\Elastica\Extensions;
 
+use DNADesign\Elemental\Models\BaseElement;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\ORM\DataExtension;
 use TheWebmen\Elastica\Services\ElasticaService;
-use SilverStripe\Core\Injector\Injector;
 use TheWebmen\Elastica\Traits\FilterIndexItemTrait;
 use SilverStripe\Core\Environment;
 use TheWebmen\Elastica\Interfaces\IndexItemInterface;
 use SilverStripe\Core\ClassInfo;
 use SilverStripe\ORM\DataObject;
 
-class GridElementIndexExtension extends DataExtension implements IndexItemInterface
+/**
+ * @property BaseElement $owner
+ */
+final class GridElementIndexExtension extends DataExtension implements IndexItemInterface
 {
     use FilterIndexItemTrait;
 
-    const INDEX_SUFFIX = 'grid-element';
+    private const INDEX_SUFFIX = 'grid-element';
 
-    /**
-     * @var ElasticaService
-     */
-    private $elasticaService;
+    private ElasticaService $elasticaService;
 
     public function __construct()
     {
         parent::__construct();
 
-        $this->elasticaService = Injector::inst()->get('ElasticaService');
-
+        $this->elasticaService = ElasticaService::singleton();
     }
 
-    public function updateElasticaFields(&$fields)
+    /**
+     * @param array<string, mixed> $fields
+     */
+    public function updateElasticaFields(array &$fields): void
     {
         $fields['PageId'] = ['type' => 'keyword'];
         $fields['Visible'] = ['type' => 'boolean'];
@@ -39,21 +44,29 @@ class GridElementIndexExtension extends DataExtension implements IndexItemInterf
         $fields['Title'] = ['type' => 'text'];
         $fields['Url'] = [
             'type' => 'text',
-            'fielddata' => true
+            'fielddata' => true,
         ];
         $fields[ElasticaService::SUGGEST_FIELD_NAME] = [
             'type' => 'completion',
-            'analyzer' => 'suggestion'
+            'analyzer' => 'suggestion',
         ];
     }
 
-    public function updateElasticaDocumentData(&$data)
+    /**
+     * @param array<string, mixed> $data
+     */
+    public function updateElasticaDocumentData(array &$data): void
     {
+        /** @var SiteTree|null $page */
         $page = $this->owner->getPage();
 
-        if ($page) {
-            $data['PageId'] = $page->getElasticaPageId();
+        if ($page instanceof SiteTree && $page->hasExtension(FilterIndexPageItemExtension::class)) {
             $data['Visible'] = $this->getPageVisibility($page);
+            $data['Url'] = $page->getAbsoluteLiveLink(false);
+            $data['Title'] = $page->getTitle();
+            $data[ElasticaService::SUGGEST_FIELD_NAME] = $this->fillSuggest(['Title', 'Content'], $data);
+            /** @var FilterIndexPageItemExtension $page */
+            $data['PageId'] = $page->getElasticaId();
         } else {
             $data['PageId'] = 'none';
             $data['Visible'] = false;
@@ -61,41 +74,37 @@ class GridElementIndexExtension extends DataExtension implements IndexItemInterf
 
         $data['ElementTitle'] = $this->owner->getTitle();
 
-        if ($this->owner->hasField('Content') && !isset($data['Content'])) {
+        if (isset($this->owner->Content)) {
             $data['Content'] = $this->owner->Content;
-        }
-
-        if ($data['Visible']) {
-            $data['Url'] = $page->getAbsoluteLiveLink(false);
-            $data['Title'] = $page->getTitle();
-        }
-
-        if ($data['Visible'] && !isset($data[ElasticaService::SUGGEST_FIELD_NAME])) {
-            $data[ElasticaService::SUGGEST_FIELD_NAME] = $this->fillSugest(['Title', 'Content'], $data);
         }
     }
 
-    public function onAfterPublish()
+    public function onAfterPublish(): void
     {
         $this->updateElasticaDocument();
     }
 
-    public function onAfterUnpublish()
+    public function onAfterUnpublish(): void
     {
-        $this->elasticaService->setIndex(self::getIndexName())->delete($this);
+        $this->deleteElasticaDocument();
     }
 
-    public function onBeforeDelete()
+    public function onBeforeDelete(): void
     {
-        $this->onAfterUnpublish();
+        $this->deleteElasticaDocument();
     }
 
-    public function updateElasticaDocument()
+    public function updateElasticaDocument(): void
     {
         $this->elasticaService->setIndex(self::getIndexName())->add($this);
     }
 
-    public static function getIndexName()
+    public function deleteElasticaDocument(): void
+    {
+        $this->elasticaService->setIndex(self::getIndexName())->delete($this);
+    }
+
+    public static function getIndexName(): string
     {
         $name =  sprintf('content-%s-%s', Environment::getEnv('ELASTICSEARCH_INDEX'), self::INDEX_SUFFIX);
 
@@ -106,7 +115,7 @@ class GridElementIndexExtension extends DataExtension implements IndexItemInterf
         return $name;
     }
 
-    public static function getExtendedClasses()
+    public static function getExtendedClasses(): array
     {
         $classes = [];
         $candidates = ClassInfo::subclassesFor(DataObject::class);
@@ -116,26 +125,5 @@ class GridElementIndexExtension extends DataExtension implements IndexItemInterf
             }
         }
         return $classes;
-    }
-
-    protected function fillSugest($fields, $data)
-    {
-        $analyzed =[];
-        foreach ($fields as $field) {
-            // $analyzed = [];
-            $words=[];
-            $text = isset($data[$field]) ? $data[$field] : "";
-            if (empty($text)) {
-                continue;
-            }
-
-            $words = array_column($this->elasticaService->getIndex()->analyze(['analyzer' => 'suggestion', 'text' => $text]), 'token');
-            $analyzed = array_merge($words, $analyzed);
-        }
-
-        $analyzed = array_values(array_unique($analyzed));
-        $suggest = ['input' => $analyzed];
-
-        return $suggest;
     }
 }

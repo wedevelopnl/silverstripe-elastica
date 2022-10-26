@@ -1,85 +1,75 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TheWebmen\Elastica\Services;
 
+use Elastica\Client;
 use Elastica\Document;
+use Elastica\Index;
+use Elastica\Query;
+use Elastica\ResultSet;
 use Elastica\Suggest;
-use SilverStripe\Core\ClassInfo;
 use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Core\Config\Configurable;
-use SilverStripe\ORM\DataObject;
 use SilverStripe\Versioned\Versioned;
 use TheWebmen\Elastica\Extensions\FilterIndexDataObjectItemExtension;
-use TheWebmen\Elastica\Extensions\FilterIndexItemExtension;
 use TheWebmen\Elastica\Extensions\FilterIndexPageItemExtension;
 use TheWebmen\Elastica\Extensions\GridElementIndexExtension;
 use TheWebmen\Elastica\Interfaces\IndexItemInterface;
-use TheWebmen\Elastica\Traits\FilterIndexItemTrait;
-Use Elastica\Client as ElasticaClient;
-use Translatable;
 
-class ElasticaService
+final class ElasticaService
 {
     use Extensible;
     use Injectable;
     use Configurable;
 
-    const SUGGEST_FIELD_NAME = 'suggest';
+    public const SUGGEST_FIELD_NAME = 'suggest';
 
-    private static $number_of_shards = 1;
+    /** @config  */
+    private static int $number_of_shards = 1;
 
-    private static $number_of_replicas = 1;
+    /** @config  */
+    private static int $number_of_replicas = 1;
 
-    /** @var ElasticaClient  */
-    protected $client;
+    private Client $client;
+
+    private Index $index;
 
     /**
-     * @var \Elastica\Index
+     * @param array<string, string> $config
      */
-    protected $index;
-
-    public function __construct($config = [])
+    public function __construct(array $config = [])
     {
-        $this->client = new ElasticaClient($config);
-
+        $this->client = new Client($config);
+        $this->setIndex(FilterIndexPageItemExtension::getIndexName());
     }
 
-    public function setIndex($indexName)
+    public function setIndex(string $indexName): self
     {
         $this->index = $this->client->getIndex($indexName);
+
         return $this;
     }
 
-    public function getIndex()
-    {
-        return $this->index;
-    }
-
-    /**
-     * @param FilterIndexItemTrait $record
-     */
-    public function add($record)
+    public function add(IndexItemInterface $record): void
     {
         $this->index->addDocument($record->getElasticaDocument());
     }
 
-    /**
-     * @param FilterIndexItemTrait $record
-     */
-    public function delete($record)
+    public function delete(IndexItemInterface $record): void
     {
         $this->index->deleteById($record->getElasticaId());
     }
 
-
-    public function reindex()
+    public function reindex(): void
     {
         Versioned::set_reading_mode(Versioned::LIVE);
 
         foreach ($this->getIndexClasses() as $indexer) {
+            $indexName = call_user_func(sprintf('%s::%s', $indexer, 'getIndexName'));
 
-            $indexName = $this->getindexName($indexer);
             $this->setIndex($indexName);
             echo "Create index $indexName \n";
 
@@ -92,16 +82,16 @@ class ElasticaService
                             'dutch_stop' => [
                                 'type' => 'stop',
                                 'stopwords' => '_dutch_',
-                                'ignore_case' => true
+                                'ignore_case' => true,
                             ],
                             'filename_stop' => [
                                 'type' => 'stop',
-                                'stopwords' => ['doc', 'jpg', 'jpeg', 'png', 'pdf', 'exe', 'csv']
+                                'stopwords' => ['doc', 'jpg', 'jpeg', 'png', 'pdf', 'exe', 'csv'],
                             ],
                             'length' => [
                                 'type' => 'length',
-                                'min' => 3
-                            ]
+                                'min' => 3,
+                            ],
                         ],
                         'char_filter' => [
                             'html' => [
@@ -110,26 +100,25 @@ class ElasticaService
                             'number_filter' => [
                                 'type' => 'pattern_replace',
                                 'pattern' => '\\d+',
-                                'replacement' => ''
+                                'replacement' => '',
                             ],
                             'file_filter' => [
                                 'type' => 'pattern_replace',
                                 'pattern' => '^[\\w\\-]+\\.[a-z]{1,4}$',
-                                'replacement' => ''
-                            ]
+                                'replacement' => '',
+                            ],
                         ],
                         'analyzer' => [
                             'suggestion' => [
                                 'tokenizer' => 'standard',
                                 'filter' => ['dutch_stop', 'lowercase', 'filename_stop', 'length'],
                                 'char_filter' => ['html', 'number_filter', 'file_filter'],
-                            ]
+                            ],
                         ],
-                    ]
-                ]
+                    ],
+                ],
             ], true);
             echo "Done\n";
-
 
             $documents = $this->indexDocuments($indexer);
 
@@ -143,20 +132,20 @@ class ElasticaService
         }
     }
 
-
-    protected function indexDocuments($indexer)
+    /**
+     * @return Document[]
+     */
+    private function indexDocuments(string $indexer): array
     {
         $documents = [];
-
-        $indexedClasses = $this->getExtendedClasses($indexer);
+        $indexedClasses = call_user_func(sprintf('%s::%s', $indexer, 'getExtendedClasses'));
+        ;
 
         foreach ($indexedClasses as $class) {
-
             echo "Indexing {$class}\n";
 
-            /** @var FilterIndexItemTrait $instance */
+            /** @var IndexItemInterface $instance */
             $instance = $class::singleton();
-
             $mapping = $instance->getElasticaMapping();
 
             echo "Create mapping\n";
@@ -165,9 +154,8 @@ class ElasticaService
 
             echo "Create documents\n";
 
-            /** @var FilterIndexItemTrait $record */
+            /** @var IndexItemInterface $record */
             foreach (Versioned::get_by_stage($class, 'Live') as $record) {
-                /** @var \Elastica\Document $document */
                 $documents[] = $record->getElasticaDocument();
                 echo "Create documents\n";
             }
@@ -177,23 +165,22 @@ class ElasticaService
         return $documents;
     }
 
-    public function search(\Elastica\Query $query)
+    public function search(Query $query): ResultSet
     {
-       if (!$this->index){
-           $this->setDefaultIndex();
-       }
-       return $this->index->search($query);
+        return $this->index->search($query);
     }
 
-
-    public function suggest(string $field, string  $query, array $options)
+    /**
+     * @param array<string, mixed> $options
+     */
+    public function suggest(string $field, string $query, array $options): ResultSet
     {
         $suggest = new Suggest();
 
         $phrase = new Suggest\Completion($field, self::SUGGEST_FIELD_NAME);
         $phrase->setPrefix($query);
 
-        if (!empty($options['fuzzy'])){
+        if (!empty($options['fuzzy'])) {
             $phrase->setFuzzy($options['fuzzy']);
         }
 
@@ -202,34 +189,23 @@ class ElasticaService
 
         $suggest->addSuggestion($phrase);
 
-        $result = $this->index->search($suggest);
-
-        return $result;
+        return $this->index->search($suggest);
     }
 
-    protected function getIndexClasses() {
-
+    /**
+     * @return string[]
+     */
+    private function getIndexClasses(): array
+    {
         return [
             FilterIndexPageItemExtension::class,
             FilterIndexDataObjectItemExtension::class,
-            GridElementIndexExtension::class
+            GridElementIndexExtension::class,
         ];
     }
 
-    protected function getIndexName($class)
+    public function getIndex(): Index
     {
-        return call_user_func(sprintf('%s::%s', $class, 'getIndexName'));
-    }
-
-    protected function getExtendedClasses($class)
-    {
-       return  call_user_func(sprintf('%s::%s', $class, 'getExtendedClasses'));
-    }
-
-    protected function setDefaultIndex()
-    {
-        $this->setIndex(FilterIndexPageItemExtension::getIndexName());
-
-        return $this;
+        return $this->index;
     }
 }

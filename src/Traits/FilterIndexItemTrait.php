@@ -1,22 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TheWebmen\Elastica\Traits;
 
-use SilverStripe\Core\Environment;
-use SilverStripe\ORM\DataObject;
 use SilverStripe\CMS\Model\SiteTree;
+use TheWebmen\Elastica\Interfaces\IndexItemInterface;
 
 /**
- * @property FilterIndexItemTrait owner
- * @mixin DataObject
+ * @property IndexItemInterface $owner
  */
 trait FilterIndexItemTrait
 {
-
-    public function getElasticaFields()
+    public function getElasticaFields(): array
     {
         $fields = [
-            'ID' => ['type' => 'integer']
+            'ID' => ['type' => 'integer'],
         ];
 
         if (method_exists($this->owner, 'updateElasticaFields')) {
@@ -28,7 +27,7 @@ trait FilterIndexItemTrait
         return $fields;
     }
 
-    public function getElasticaMapping()
+    public function getElasticaMapping(): \Elastica\Mapping
     {
         $mapping = new \Elastica\Mapping();
         $mapping->setProperties($this->getElasticaFields());
@@ -37,41 +36,61 @@ trait FilterIndexItemTrait
         return $mapping;
     }
 
-    public function getElasticaDocument()
+    public function getElasticaId(): string
+    {
+        return implode('_', [$this->owner->ClassName, $this->owner->ID]);
+    }
+
+    public function getElasticaDocument(): \Elastica\Document
     {
         $data = [
-            'ID' => $this->owner->ID
+            'ID' => $this->owner->ID,
         ];
+
+        $this->owner->extend('updateElasticaDocumentData', $data);
 
         if (method_exists($this->owner, 'updateElasticaDocumentData')) {
             $this->owner->updateElasticaDocumentData($data);
         }
 
-        $this->owner->extend('updateElasticaDocumentData', $data);
-
         return new \Elastica\Document($this->owner->getElasticaId(), $data, $this->owner->getIndexName());
     }
 
-    public function getElasticaId()
-    {
-        return implode('_', [$this->owner->ClassName, $this->owner->ID]);
-    }
-
-    public function getElasticaPageId()
-    {
-        return implode('_', [Environment::getEnv('ELASTICSEARCH_INDEX'), $this->owner->getElasticaId()]);
-    }
-
-    public function getPageVisibility(SiteTree $page)
+    public function getPageVisibility(SiteTree $page): bool
     {
         if (!$page->isPublished()) {
             return false;
         }
 
-        if (!$page->getParent()) {
+        if (!$page->getParent() instanceof SiteTree) {
             return true;
         }
 
         return $this->getPageVisibility($page->getParent());
+    }
+
+    /**
+     * @param string[] $fields
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
+    public function fillSuggest(array $fields, array $data): array
+    {
+        $analyzed = [];
+
+        foreach ($fields as $field) {
+            $text = $data[$field] ?? '';
+
+            if (empty($text)) {
+                continue;
+            }
+
+            $words = array_column($this->elasticaService->getIndex()->analyze(['analyzer' => 'suggestion', 'text' => $text]), 'token');
+            $analyzed = array_merge($words, $analyzed);
+        }
+
+        $analyzed = array_values(array_unique($analyzed));
+
+        return ['input' => $analyzed];
     }
 }

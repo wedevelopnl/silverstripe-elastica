@@ -1,63 +1,47 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TheWebmen\Elastica\Filters;
 
+use Elastica\Aggregation\AbstractAggregation;
 use Elastica\Query\AbstractQuery;
-use SilverStripe\Control\Controller;
-use SilverStripe\Control\RequestHandler;
-use SilverStripe\Forms\Form;
-use SilverStripe\ORM\FieldType\DBDatetime;
-use SilverStripe\ORM\FieldType\DBField;
 use TheWebmen\Elastica\Forms\DateFilterField;
+use TheWebmen\Elastica\Interfaces\AggregatableFilterInterface;
+use TheWebmen\Elastica\Interfaces\FilterFieldInterface;
+use TheWebmen\Elastica\Interfaces\FilterInterface;
 
 /**
- * @method DateFilterField getFilterField
+ * @method DateFilterField getFilterField()
  */
-class DateFilter extends Filter
+final class DateFilter extends Filter implements FilterInterface, AggregatableFilterInterface
 {
-    private static $singular_name = 'Date';
+    /** @config */
+    private static string $singular_name = 'Date';
 
-    private static $mapping = [
-        'Today' => [
-            'From' => 'today midnight',
-            'To' => 'tomorrow midnight',
-            'Label' => 'Today',
-        ],
-        'Since 7 days' => [
-            'From' => '-7 days midnight',
-            'To' => 'tomorrow midnight',
-            'Label' => 'Since 7 days',
-        ],
-        'Since 30 days' => [
-            'From' => '-30 days midnight',
-            'To' => 'tomorrow midnight',
-            'Label' => 'Since 30 days',
-        ]
-    ];
+    /** @config */
+    private static array $mapping = [];
 
-    public function getElasticaQuery()
+    public function getElasticaQuery(): ?AbstractQuery
     {
-        $query = null;
         $value = $this->getFilterField()->Value();
         $mapping = $this->config()->get('mapping');
 
-        if ($value && array_key_exists($value, $mapping)) {
-            $query = new \Elastica\Query\Range($this->FieldName, [
-                'gt' => DBField::create_field('Datetime', strtotime($mapping[$value]['From']))->Value,
-                'lt' => DBField::create_field('Datetime', strtotime($mapping[$value]['To']))->Value,
-            ]);
+        if (!array_key_exists($value, $mapping)) {
+            return null;
         }
 
-        return $query;
+        return new \Elastica\Query\Range($this->FieldName, [
+            'gt' => date('Y-m-d', strtotime($mapping[$value]['From'])),
+            'lt' => date('Y-m-d', strtotime($mapping[$value]['To'])),
+        ]);
     }
 
-    public function generateFilterField()
+    public function generateFilterField(): FilterFieldInterface
     {
-        $mapping = $this->config()->get('mapping');
-
         $options = [];
 
-        foreach ($mapping as $key => $settings) {
+        foreach ($this->config()->get('mapping') as $key => $settings) {
             if (!array_key_exists('Exclude', $settings) || !$settings['Exclude']) {
                 $options[$key] = $settings['Label'];
             }
@@ -68,16 +52,15 @@ class DateFilter extends Filter
 
     /**
      * @param Filter[] $filters
-     * @return \Elastica\Aggregation\GlobalAggregation|null
      */
-    public function getAggregation(array $filters)
+    public function getAggregation(array $filters): AbstractAggregation
     {
         $query = new \Elastica\Query\BoolQuery();
 
         foreach ($filters as $filter) {
             $filterQuery = $filter->getElasticaQuery();
 
-            if ($this->ID != $filter->ID && $filterQuery) {
+            if ($this->ID !== $filter->ID && $filterQuery) {
                 $query->addMust($filterQuery);
             }
         }
@@ -89,8 +72,8 @@ class DateFilter extends Filter
 
         foreach ($this->config()->get('mapping') as $key => $value) {
             $aggRange->addRange(
-                DBField::create_field('Datetime', strtotime($value['From']))->Value,
-                DBField::create_field('Datetime', strtotime($value['To']))->Value,
+                date('Y-m-d', strtotime($value['From'])),
+                date('Y-m-d', strtotime($value['To'])),
                 $key
             );
         }
@@ -98,13 +81,13 @@ class DateFilter extends Filter
         $filter = new \Elastica\Aggregation\Filter('filter', $query);
         $filter->addAggregation($aggRange);
 
-        $aggregation = new \Elastica\Aggregation\GlobalAggregation($this->ID);
+        $aggregation = new \Elastica\Aggregation\GlobalAggregation((string)$this->ID);
         $aggregation->addAggregation($filter);
 
         return $aggregation;
     }
 
-    public function addAggregation(array $aggregation)
+    public function addAggregation(array $aggregation): void
     {
         $counts = [];
         foreach ($aggregation['filter']['range']['buckets'] as $value) {
@@ -112,8 +95,8 @@ class DateFilter extends Filter
         }
 
         $source = [];
-        foreach ($this->getFilterField()->getSource() as $key => $value) {
-            $source[$key] = "{$value}<span>({$counts[$key]})</span>";
+        foreach ((array)$this->getFilterField()->getSource() as $key => $value) {
+            $source[$key] = sprintf('%s<span>%s</span>', $value, $counts[$key]);
         }
 
         $this->getFilterField()->setSource($source);

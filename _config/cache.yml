@@ -1,5 +1,5 @@
 SilverStripe\Core\Injector\Injector:
-  Psr\SimpleCache\CacheInterface.geodistancefilter:
+  Psr\SimpleCache\CacheInterface.elasticaGeocode:
     factory: SilverStripe\Core\Cache\CacheFactory
     constructor:
-      namespace: 'GEODISTANCEFILTER'
+      namespace: 'elasticaGeocode'

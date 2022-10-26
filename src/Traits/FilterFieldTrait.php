@@ -1,21 +1,22 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TheWebmen\Elastica\Traits;
 
-use SilverStripe\ORM\DataObject;
 use TheWebmen\Elastica\Filters\Filter;
 
 trait FilterFieldTrait
 {
-    private $filter;
+    private Filter $filter;
 
-    public function setFilter(Filter $filter)
-    {
-        $this->filter = $filter;
-    }
-
-    public function getFilter()
+    public function getFilter(): Filter
     {
         return $this->filter;
+    }
+
+    public function setFilter(Filter $filter): void
+    {
+        $this->filter = $filter;
     }
 }

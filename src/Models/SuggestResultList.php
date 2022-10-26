@@ -1,79 +1,64 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TheWebmen\Elastica\Model;
 
-use SilverStripe\Core\Injector\Injector;
-use SilverStripe\ORM\Limitable;
-use SilverStripe\ORM\SS_List;
 use SilverStripe\View\ViewableData;
 use TheWebmen\Elastica\Services\ElasticaService;
 use Elastica\ResultSet;
-use SilverStripe\Control\HTTP;
-use SilverStripe\ORM\ArrayList;
-use SilverStripe\View\ArrayData;
 
 class SuggestResultList extends ViewableData
 {
-    const RESULT_SIZE = 20;
+    private const RESULT_SIZE = 20;
+
+    private string $field;
 
     /**
-     * @var string
+     * @return string[]
      */
-    protected $field;
+    private array $resultSet;
 
-    /**
-     * @var \Elastica\ResultSet
-     */
-    protected $resultSet;
+    private array $options;
 
-    /**
-     * @var array
-     */
-    protected $options;
+    private ElasticaService $elasticaService;
 
-    /**
-     * @var ElasticaService
-     */
-    private $elasticaService;
-
-    public function __construct($indexName,string $field)
+    public function __construct(string $indexName, string $field)
     {
-        $this->elasticaService = Injector::inst()->get('ElasticaService')->setIndex($indexName);
-        $this->field = $field;
-
         parent::__construct();
+
+        $this->elasticaService = ElasticaService::singleton();
+        $this->elasticaService->setIndex($indexName);
+        $this->field = $field;
     }
 
     /**
-     * @param string $url
-     * @param int $pageNr
-     * @param int $pageSize
-     * @param int $pageOffset
-     * @return array|\Elastica\ResultSet
+     * @param array<string, mixed> $options
+     * @return string[]
      */
-    public function getResultSet($query, array $options)
+    public function getResultSet(string $query, array $options): array
     {
         if (!$this->resultSet) {
-
             $this->setOptions($options);
             $this->resultSet = $this->getSuggestResult($this->elasticaService->suggest($this->field, $query, $this->options));
         }
         return $this->resultSet;
     }
 
-
-    protected function setOptions(array $options)
+    /**
+     * @param array<string, mixed> $options
+     */
+    private function setOptions(array $options): void
     {
-
-        if (!isset($options['size'])){
+        if (!isset($options['size'])) {
             $options['size'] = self::RESULT_SIZE;
         }
-        if (isset($options['skip_duplicates'])){
+        if (isset($options['skip_duplicates'])) {
             $options['skip_duplicates'] = (bool)$options['skip_duplicates'];
-        } else{
+        } else {
             $options['skip_duplicates'] = true;
         }
-        if (!isset($options['fuzzy'])){
+        if (!isset($options['fuzzy'])) {
             $options['fuzzy'] = false;
         } else {
             if (!isset($options['fuzzy']['fuzziness'])) {
@@ -90,20 +75,14 @@ class SuggestResultList extends ViewableData
     }
 
     /**
-     * @param ResultSet $searchResult
-     * @param $currentPageNr
-     * @return array
+     * @return string[]
      */
-    protected function getSuggestResult(ResultSet $searchResult)
+    private function getSuggestResult(ResultSet $searchResult): array
     {
         $suggest = $searchResult->getSuggests();
-        if (!isset($suggest[$this->field])) {
-            return false;
-        }
-        $data = [];
-        foreach ($suggest[$this->field][0]['options'] as $option) {
-            $data[] = $option['text'];
-        }
-        return $data;
+
+        return array_map(function (array $option) {
+            return $option['text'];
+        }, $suggest[$this->field][0]['options']);
     }
 }

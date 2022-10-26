@@ -1,18 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TheWebmen\Elastica\Interfaces;
 
+use SilverStripe\Forms\FormField;
 use TheWebmen\Elastica\Filters\Filter;
 
+/**
+ * @mixin FormField
+ */
 interface FilterFieldInterface
 {
-    /**
-     * @return Filter
-     */
-    public function getFilter();
+    public function getFilter(): Filter;
 
-    /**
-     * @param Filter $filter
-     */
-    public function setFilter(Filter $filter);
+    public function setFilter(Filter $filter): void;
 }

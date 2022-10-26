@@ -1,40 +1,40 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TheWebmen\Elastica\Forms;
 
-use Elastica\Suggest;
 use SilverStripe\Control\HTTPResponse;
-use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Forms\TextField;
-use TheWebmen\Elastica\Filters\MultiMatchFilter;
+use SilverStripe\ORM\FieldType\DBHTMLText;
 use TheWebmen\Elastica\Interfaces\FilterFieldInterface;
 use TheWebmen\Elastica\Services\ElasticaService;
 use TheWebmen\Elastica\Traits\FilterFieldTrait;
 
-/**
- * @method FilterForm getForm
- */
-class MultiMatchFilterField extends TextField implements FilterFieldInterface
+final class MultiMatchFilterField extends TextField implements FilterFieldInterface
 {
     use FilterFieldTrait;
 
-    private static $allowed_actions = [
-        'autocomplete'
+    /** @config */
+    private static array $allowed_actions = [
+        'autocomplete',
     ];
 
-    public function FieldHolder($properties = array())
+    /**
+     * @param array<string, mixed> $properties
+     */
+    public function FieldHolder($properties = []): DBHTMLText
     {
         $this->setAttribute('data-autocomplete', $this->Link('autocomplete'));
 
         return parent::FieldHolder($properties);
     }
 
-    public function autocomplete()
+    public function autocomplete(): HTTPResponse
     {
         $query = $this->getAutocompleteQuery();
 
-        /** @var ElasticaService $elasticaService */
-        $elasticaService = Injector::inst()->get('ElasticaService');
+        $elasticaService = ElasticaService::singleton();
         $response = $elasticaService->search($query);
         $results = [];
 
@@ -42,16 +42,18 @@ class MultiMatchFilterField extends TextField implements FilterFieldInterface
             $results[] = $document['_source'][$this->getFilter()->AutocompleteTitleFieldName];
         }
 
-        $response = new HTTPResponse();
-        $response->addHeader('Content-Type', 'application/json');
-        $response->setBody(json_encode($results));
-
-        return $response;
+        return HTTPResponse::create()
+            ->addHeader('Content-Type', 'application/json')
+            ->setBody(json_encode($results, JSON_THROW_ON_ERROR));
     }
 
-    protected function getAutocompleteQuery()
+    private function getAutocompleteQuery(): \Elastica\Query
     {
-        $q = $this->getForm()->getController()->getRequest()->getVar('q');
+        $q = $this->getForm()->getController()->getRequest()->requestVar('q');
+
+        if (!$q) {
+            throw new \Exception('Query param not found');
+        }
 
         $query = new \Elastica\Query();
 

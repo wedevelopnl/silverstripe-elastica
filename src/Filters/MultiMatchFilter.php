@@ -1,48 +1,51 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TheWebmen\Elastica\Filters;
 
-use SilverStripe\Control\Controller;
-use SilverStripe\Control\RequestHandler;
-use SilverStripe\Forms\CheckboxField;
+use Elastica\Query\AbstractQuery;
 use SilverStripe\Forms\DropdownField;
-use SilverStripe\Forms\Form;
-use SilverStripe\Forms\TextField;
+use SilverStripe\Forms\FieldList;
 use SilverStripe\TagField\StringTagField;
-use TheWebmen\Elastica\Extensions\FilterPageControllerExtension;
 use TheWebmen\Elastica\Forms\MultiMatchFilterField;
-use TheWebmen\Elastica\Model\FacetIndexItemsList;
+use TheWebmen\Elastica\Interfaces\FilterFieldInterface;
+use TheWebmen\Elastica\Interfaces\FilterInterface;
 
 /**
- * @property string Placeholder
- * @property string AutocompleteFieldName
- * @property string AutocompleteTitleFieldName
+ * @property string $Placeholder
+ * @property string $AutocompleteFieldName
+ * @property string $AutocompleteTitleFieldName
  */
-class MultiMatchFilter extends Filter
+final class MultiMatchFilter extends Filter implements FilterInterface
 {
-    private static $singular_name = 'MultiMatch';
+    /** @config */
+    private static string $singular_name = 'MultiMatch';
 
-    private static $table_name = 'TheWebmen_Elastica_Filter_MultiMatchFilter';
+    /** @config */
+    private static string $table_name = 'TheWebmen_Elastica_Filter_MultiMatchFilter';
 
-    private static $db = [
+    /** @config */
+    private static array $db = [
         'Placeholder' => 'Varchar',
         'AutocompleteFieldName' => 'Varchar',
         'AutocompleteTitleFieldName' => 'Varchar',
     ];
 
-    public function getCMSFields()
+    public function getCMSFields(): FieldList
     {
         $fields = parent::getCMSFields();
 
         $availableFields = $this->Page()->getAvailableElasticaFields();
         $availableCompletionFields = $this->Page()->getAvailableElasticaCompletionFields();
 
-        $fields->addFieldToTab('Root.Main',
+        $fields->addFieldToTab(
+            'Root.Main',
             StringTagField::create(
                 'FieldName',
                 'FieldName',
                 array_combine($availableFields, $availableFields),
-                $this->FieldName ? explode(',', $this->FieldName) : null
+                $this->getFields(),
             )
         );
 
@@ -50,43 +53,35 @@ class MultiMatchFilter extends Filter
             DropdownField::create(
                 'AutocompleteFieldName',
                 'Autocomplete field name',
-                array_combine($availableCompletionFields, $availableCompletionFields)
+                array_combine($availableCompletionFields, $availableCompletionFields),
             ),
             DropdownField::create(
                 'AutocompleteTitleFieldName',
                 'Autocomplete title field name',
                 array_combine($availableFields, $availableFields),
-                $this->AutocompleteTitleFieldName ? explode(',', $this->AutocompleteTitleFieldName) : null
-            )
+                $this->AutocompleteTitleFieldName,
+            ),
         ]);
 
         return $fields;
     }
 
-    public function onBeforeWrite()
+    public function getElasticaQuery(): ?AbstractQuery
     {
-        parent::onBeforeWrite();
-
-        if (empty($this->Placeholder)) {
-            $this->Placeholder = $this->Name;
-        }
-    }
-
-    public function getElasticaQuery()
-    {
-        $query = null;
         $value = $this->getFilterField()->Value();
 
-        if ($value) {
-            $query = new \Elastica\Query\MultiMatch();
-            $query->setQuery($value);
-            $query->setFields($this->getFields());
+        if (empty($value)) {
+            return null;
         }
+
+        $query = new \Elastica\Query\MultiMatch();
+        $query->setQuery($value);
+        $query->setFields($this->getFields());
 
         return $query;
     }
 
-    public function generateFilterField()
+    public function generateFilterField(): FilterFieldInterface
     {
         $field = new MultiMatchFilterField($this->Name, $this->Title);
         $field->setAttribute('placeholder', $this->Placeholder);
@@ -94,8 +89,11 @@ class MultiMatchFilter extends Filter
         return $field;
     }
 
-    public function getFields()
+    /**
+     * @return array<string>
+     */
+    public function getFields(): array
     {
-        return explode(',', $this->FieldName);
+        return $this->FieldName ? explode(',', $this->FieldName) : [];
     }
 }

@@ -1,38 +1,48 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TheWebmen\Elastica\Filters;
 
-use SilverStripe\Control\Controller;
-use SilverStripe\Control\RequestHandler;
+use Elastica\Aggregation\AbstractAggregation;
+use Elastica\Aggregation\GlobalAggregation;
+use Elastica\Query\AbstractQuery;
+use Elastica\Query\BoolQuery;
+use Elastica\Query\Term;
+use Elastica\Query\Terms;
 use SilverStripe\Forms\DropdownField;
-use SilverStripe\Forms\Form;
-use SilverStripe\Forms\OptionsetField;
+use SilverStripe\Forms\FieldList;
 use TheWebmen\Elastica\Forms\TermsFilterCheckboxSetField;
 use TheWebmen\Elastica\Forms\TermsFilterDropdownField;
-use TheWebmen\Elastica\Forms\TermsFilterField;
 use TheWebmen\Elastica\Forms\TermsFilterOptionsetField;
+use TheWebmen\Elastica\Interfaces\AggregatableFilterInterface;
+use TheWebmen\Elastica\Interfaces\FilterFieldInterface;
+use TheWebmen\Elastica\Interfaces\FilterInterface;
 
 /**
- * @property string Type
- * @property string Placeholder
- * @method TermsFilterField getFilterField
+ * @property string $Type
+ * @property string $Placeholder
+ * @method TermsFilterCheckboxSetField|TermsFilterDropdownField|TermsFilterOptionsetField getFilterField()
  */
-class TermsFilter extends Filter
+final class TermsFilter extends Filter implements FilterInterface, AggregatableFilterInterface
 {
-    const TYPE_CHECKBOX = 'checkbox';
-    const TYPE_DROPDOWN = 'dropdown';
-    const TYPE_RADIO = 'radio';
+    private const TYPE_CHECKBOX = 'checkbox';
+    private const TYPE_DROPDOWN = 'dropdown';
+    private const TYPE_RADIO = 'radio';
 
-    private static $singular_name = 'Terms';
+    /** @config  */
+    private static string $singular_name = 'Terms';
 
-    private static $table_name = 'TheWebmen_Elastica_Filter_TermsFilter';
+    /** @config  */
+    private static string $table_name = 'TheWebmen_Elastica_Filter_TermsFilter';
 
-    private static $db = [
+    /** @config  */
+    private static array $db = [
         'Type' => 'Varchar',
-        'Placeholder' => 'Varchar'
+        'Placeholder' => 'Varchar',
     ];
 
-    public function getCMSFields()
+    public function getCMSFields(): FieldList
     {
         $fields = parent::getCMSFields();
 
@@ -45,7 +55,7 @@ class TermsFilter extends Filter
         return $fields;
     }
 
-    public function onBeforeWrite()
+    public function onBeforeWrite(): void
     {
         parent::onBeforeWrite();
 
@@ -54,11 +64,11 @@ class TermsFilter extends Filter
         }
     }
 
-    public function getElasticaQuery()
+    public function getElasticaQuery(): ?AbstractQuery
     {
         $value = $this->getFilterField()->Value();
 
-        if (in_array($this->Type, [self::TYPE_CHECKBOX, self::TYPE_RADIO])) {
+        if (in_array($this->Type, [self::TYPE_CHECKBOX, self::TYPE_RADIO], true)) {
             $value = is_array($value) ? $value : [];
         }
 
@@ -67,16 +77,16 @@ class TermsFilter extends Filter
         $query = null;
 
         if ($value && is_array($value)) {
-            $query = new \Elastica\Query\Terms($this->FieldName, array_keys($value));
+            $query = new Terms($this->FieldName, array_keys($value));
         } elseif (!empty($value)) {
-            $query = new \Elastica\Query\Term();
+            $query = new Term();
             $query->setTerm($this->FieldName, $value);
         }
 
         return $query;
     }
 
-    public function generateFilterField()
+    public function generateFilterField(): FilterFieldInterface
     {
         switch ($this->Type) {
             case self::TYPE_DROPDOWN:
@@ -94,29 +104,17 @@ class TermsFilter extends Filter
         return $field;
     }
 
-    public function generateLabel($label, $count)
-    {
-        if ($this->Type == self::TYPE_DROPDOWN) {
-            $label = "{$label} ({$count})";
-        } else {
-            $label = "{$label}<span>({$count})</span>";
-        }
-
-        return $label;
-    }
-
     /**
      * @param Filter[] $filters
-     * @return \Elastica\Aggregation\GlobalAggregation|null
      */
-    public function getAggregation(array $filters)
+    public function getAggregation(array $filters): AbstractAggregation
     {
-        $aggFilterQuery = new \Elastica\Query\BoolQuery();
+        $aggFilterQuery = new BoolQuery();
 
         foreach ($filters as $aggFilterFilter) {
             $aggFilterFilterQuery = $aggFilterFilter->getElasticaQuery();
 
-            if ($this->ID != $aggFilterFilter->ID && $aggFilterFilterQuery) {
+            if ($this->ID !== $aggFilterFilter->ID && $aggFilterFilterQuery) {
                 $aggFilterQuery->addMust($aggFilterFilterQuery);
             }
         }
@@ -131,13 +129,13 @@ class TermsFilter extends Filter
         $aggFilter = new \Elastica\Aggregation\Filter('filter', $aggFilterQuery);
         $aggFilter->addAggregation($agg);
 
-        $globalAgg = new \Elastica\Aggregation\GlobalAggregation($this->ID);
+        $globalAgg = new GlobalAggregation((string)$this->ID);
         $globalAgg->addAggregation($aggFilter);
 
         return $globalAgg;
     }
 
-    public function addAggregation(array $aggregation)
+    public function addAggregation(array $aggregation): void
     {
         $source = [];
 
@@ -148,5 +146,16 @@ class TermsFilter extends Filter
         }
 
         $this->getFilterField()->setSource($source);
+    }
+
+    private function generateLabel(string $label, int $count): string
+    {
+        if ($this->Type === self::TYPE_DROPDOWN) {
+            $label = "{$label} ({$count})";
+        } else {
+            $label = "{$label}<span>({$count})</span>";
+        }
+
+        return $label;
     }
 }

@@ -1,10 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TheWebmen\Elastica\Extensions;
 
-use SilverStripe\Core\ClassInfo;
-use SilverStripe\Core\Injector\Injector;
-use SilverStripe\Forms\CheckboxField;
+use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\GridField\GridField;
 use SilverStripe\Forms\GridField\GridFieldAddNewButton;
@@ -15,19 +15,20 @@ use Symbiote\GridFieldExtensions\GridFieldAddNewMultiClass;
 use Symbiote\GridFieldExtensions\GridFieldOrderableRows;
 use TheWebmen\Elastica\Filters\Filter;
 use TheWebmen\Elastica\Services\ElasticaService;
-use TheWebmen\Elastica\Traits\FilterIndexItemTrait;
 
 /**
- * @property FilterPageExtension owner
- * @method HasManyList|Filter[] Filters
+ * @property FilterPageExtension $owner
+ * @method HasManyList|Filter[] Filters()
+ * @mixin SiteTree
  */
-class FilterPageExtension extends DataExtension
+final class FilterPageExtension extends DataExtension
 {
-    private static $has_many = [
-        'Filters' => Filter::class
+    /** @config */
+    private static array $has_many = [
+        'Filters' => Filter::class,
     ];
 
-    public function updateCMSFields(FieldList $fields)
+    public function updateCMSFields(FieldList $fields): void
     {
         $filtersGridFieldConfig = GridFieldConfig_RecordEditor::create()
             ->addComponent(new GridFieldOrderableRows('Sort'))
@@ -42,15 +43,17 @@ class FilterPageExtension extends DataExtension
         ));
     }
 
-    public function getAvailableElasticaFields()
+    /**
+     * @return string[]
+     */
+    public function getAvailableElasticaFields(): array
     {
         $fields = [];
 
-        /** @var ElasticaService $elasticaService */
-        $elasticaService = Injector::inst()->get('ElasticaService')->setIndex(FilterIndexPageItemExtension::getIndexName());
+        ElasticaService::singleton()->setIndex(FilterIndexPageItemExtension::getIndexName());
 
         foreach (FilterIndexPageItemExtension::getExtendedClasses() as $class) {
-            /** @var FilterIndexItemTrait $object */
+            /** @var FilterIndexPageItemExtension $object */
             $object = $class::singleton();
 
             $fields = array_merge($fields, array_keys($object->getElasticaFields()));
@@ -63,20 +66,22 @@ class FilterPageExtension extends DataExtension
         return $fields;
     }
 
-    public function getAvailableElasticaCompletionFields()
+    /**
+     * @return string[]
+     */
+    public function getAvailableElasticaCompletionFields(): array
     {
         $fields = [];
 
-        /** @var ElasticaService $elasticaService */
-        $elasticaService = Injector::inst()->get('ElasticaService')->setIndex(FilterIndexPageItemExtension::getIndexName());
+        ElasticaService::singleton()->setIndex(FilterIndexPageItemExtension::getIndexName());
 
         foreach (FilterIndexPageItemExtension::getExtendedClasses() as $class) {
-            /** @var FilterIndexItemTrait $object */
+            /** @var FilterIndexPageItemExtension $object */
             $object = $class::singleton();
 
             $fields = array_merge(
                 $fields,
-                $this->getAvailableElasticaCompletionFieldsFromArray($object->getElasticaFields(), '')
+                $this->getAvailableElasticaCompletionFieldsFromArray($object->getElasticaFields())
             );
         }
 
@@ -87,12 +92,16 @@ class FilterPageExtension extends DataExtension
         return $fields;
     }
 
-    protected function getAvailableElasticaCompletionFieldsFromArray($array, $name)
+    /**
+     * @param array<string, array<string, mixed>> $array
+     * @return string[]
+     */
+    private function getAvailableElasticaCompletionFieldsFromArray(array $array, ?string $name = null): array
     {
         $fields = [];
 
         foreach ($array as $key => $field) {
-            if ($field['type'] == 'completion') {
+            if ($field['type'] === 'completion') {
                 $fields[] = ltrim("{$name}.{$key}", '.');
             }
 
