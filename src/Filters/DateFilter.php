@@ -67,8 +67,9 @@ final class DateFilter extends Filter implements FilterInterface, AggregatableFi
 
         $this->extend('updateAggregationQuery', $query);
 
-        $aggRange = new \Elastica\Aggregation\Range('range');
+        $aggRange = new \Elastica\Aggregation\DateRange('range');
         $aggRange->setField($this->FieldName);
+        $aggRange->setFormat('yyyy-MM-dd');
 
         foreach ($this->config()->get('mapping') as $key => $value) {
             $aggRange->addRange(
@@ -78,11 +79,8 @@ final class DateFilter extends Filter implements FilterInterface, AggregatableFi
             );
         }
 
-        $filter = new \Elastica\Aggregation\Filter('filter', $query);
-        $filter->addAggregation($aggRange);
-
         $aggregation = new \Elastica\Aggregation\GlobalAggregation((string)$this->ID);
-        $aggregation->addAggregation($filter);
+        $aggregation->addAggregation($aggRange);
 
         return $aggregation;
     }
@@ -90,7 +88,7 @@ final class DateFilter extends Filter implements FilterInterface, AggregatableFi
     public function addAggregation(array $aggregation): void
     {
         $counts = [];
-        foreach ($aggregation['filter']['range']['buckets'] as $value) {
+        foreach ($aggregation['range']['buckets'] as $value) {
             $counts[$value['key']] = $value['doc_count'];
         }
 
