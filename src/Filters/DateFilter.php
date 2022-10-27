@@ -21,6 +21,9 @@ final class DateFilter extends Filter implements FilterInterface, AggregatableFi
 
     /** @config */
     private static array $mapping = [];
+    
+    /** @config */
+    private static bool $show_counts = true;
 
     public function getElasticaQuery(): ?AbstractQuery
     {
@@ -94,7 +97,11 @@ final class DateFilter extends Filter implements FilterInterface, AggregatableFi
 
         $source = [];
         foreach ((array)$this->getFilterField()->getSource() as $key => $value) {
-            $source[$key] = sprintf('%s<span>%s</span>', $value, $counts[$key]);
+            if (self::config()->show_counts) {
+                $source[$key] = sprintf('%s<span>%s</span>', $value, $counts[$key]);
+            } else {
+                $source[$key] = $value;
+            }
         }
 
         $this->getFilterField()->setSource($source);
