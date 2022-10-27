@@ -30,17 +30,20 @@ final class TermsFilter extends Filter implements FilterInterface, AggregatableF
     private const TYPE_DROPDOWN = 'dropdown';
     private const TYPE_RADIO = 'radio';
 
-    /** @config  */
+    /** @config */
     private static string $singular_name = 'Terms';
 
-    /** @config  */
+    /** @config */
     private static string $table_name = 'TheWebmen_Elastica_Filter_TermsFilter';
 
-    /** @config  */
+    /** @config */
     private static array $db = [
         'Type' => 'Varchar',
         'Placeholder' => 'Varchar',
     ];
+
+    /** @config */
+    private static bool $show_counts = true;
 
     public function getCMSFields(): FieldList
     {
@@ -150,12 +153,16 @@ final class TermsFilter extends Filter implements FilterInterface, AggregatableF
 
     private function generateLabel(string $label, int $count): string
     {
-        if ($this->Type === self::TYPE_DROPDOWN) {
-            $label = "{$label} ({$count})";
-        } else {
-            $label = "{$label}<span>({$count})</span>";
+        if (!self::config()->show_counts) {
+            return $label;
         }
 
-        return $label;
+        return sprintf(
+            '%s%s%s%s',
+            $label,
+            $this->Type === self::TYPE_DROPDOWN ? ' (' : '<span>',
+            $count,
+            $this->Type === self::TYPE_DROPDOWN ? ')' : '</span>',
+        );
     }
 }

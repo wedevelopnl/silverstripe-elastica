@@ -83,6 +83,8 @@ final class FilterPageControllerExtension extends Extension
 
                 if ($filter instanceof AggregatableFilterInterface) {
                     $aggregation = $filter->getAggregation($this->getFilters());
+
+                    $filter->extend('updateAggregation', $aggregation);
                     $query->addAggregation($aggregation);
                 }
             }

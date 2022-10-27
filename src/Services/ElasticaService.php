@@ -10,9 +10,9 @@ use Elastica\Index;
 use Elastica\Query;
 use Elastica\ResultSet;
 use Elastica\Suggest;
+use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Injector\Injectable;
-use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Versioned\Versioned;
 use TheWebmen\Elastica\Extensions\FilterIndexDataObjectItemExtension;
 use TheWebmen\Elastica\Extensions\FilterIndexPageItemExtension;
@@ -27,10 +27,10 @@ final class ElasticaService
 
     public const SUGGEST_FIELD_NAME = 'suggest';
 
-    /** @config  */
+    /** @config */
     private static int $number_of_shards = 1;
 
-    /** @config  */
+    /** @config */
     private static int $number_of_replicas = 1;
 
     private Client $client;

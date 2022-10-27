@@ -11,6 +11,9 @@ use TheWebmen\Elastica\Interfaces\AggregatableFilterInterface;
 use TheWebmen\Elastica\Interfaces\FilterFieldInterface;
 use TheWebmen\Elastica\Interfaces\FilterInterface;
 
+/**
+ * @method RangeFilterField getFilterField()
+ */
 final class RangeFilter extends Filter implements FilterInterface, AggregatableFilterInterface
 {
     /** @config */
@@ -42,16 +45,6 @@ final class RangeFilter extends Filter implements FilterInterface, AggregatableF
     {
         $query = new \Elastica\Query\BoolQuery();
 
-        foreach ($filters as $filter) {
-            $filterQuery = $filter->getElasticaQuery();
-
-            if ($this->ID !== $filter->ID && $filterQuery) {
-                $query->addMust($filterQuery);
-            }
-        }
-
-        $this->extend('updateAggregationQuery', $query);
-
         $min = new \Elastica\Aggregation\Min('min');
         $min->setField($this->FieldName);
 
@@ -70,7 +63,10 @@ final class RangeFilter extends Filter implements FilterInterface, AggregatableF
 
     public function addAggregation(array $aggregation): void
     {
-        $this->getFilterField()->setValue([
+        $field = $this->getFilterField();
+        $field->setMin($aggregation['filter']['min']['value']);
+        $field->setMax($aggregation['filter']['max']['value']);
+        $field->setValue([
             'From' => $aggregation['filter']['min']['value'],
             'To' => $aggregation['filter']['max']['value'],
         ]);

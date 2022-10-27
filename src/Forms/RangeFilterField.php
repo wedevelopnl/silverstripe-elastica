@@ -18,6 +18,10 @@ final class RangeFilterField extends FormField implements FilterFieldInterface
 
     private TextField $toField;
 
+    private float $min;
+
+    private float $max;
+
     public function __construct($name, $title)
     {
         $this->fromField = TextField::create(
@@ -56,5 +60,25 @@ final class RangeFilterField extends FormField implements FilterFieldInterface
     public function getToField(): TextField
     {
         return $this->toField;
+    }
+
+    public function getMin(): float
+    {
+        return $this->min;
+    }
+
+    public function setMin(float $min): void
+    {
+        $this->min = $min;
+    }
+
+    public function getMax(): float
+    {
+        return $this->max;
+    }
+
+    public function setMax(float $max): void
+    {
+        $this->max = $max;
     }
 }
