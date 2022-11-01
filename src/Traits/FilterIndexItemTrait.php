@@ -18,11 +18,11 @@ trait FilterIndexItemTrait
             'ID' => ['type' => 'integer'],
         ];
 
+        $this->owner->extend('updateElasticaFields', $fields);
+
         if (method_exists($this->owner, 'updateElasticaFields')) {
             $this->owner->updateElasticaFields($fields);
         }
-
-        $this->owner->extend('updateElasticaFields', $fields);
 
         return $fields;
     }
