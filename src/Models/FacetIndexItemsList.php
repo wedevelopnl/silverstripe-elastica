@@ -146,20 +146,21 @@ final class FacetIndexItemsList extends ViewableData implements SS_List, Limitab
     {
     }
 
-    public function offsetExists($key): bool
+    public function offsetExists($offset): bool
     {
-        return $this->toArrayList()->offsetExists($key);
+        return $this->toArrayList()->offsetExists($offset);
     }
 
-    public function offsetGet(mixed $key): mixed
+    public function offsetGet($offset): mixed
+    {
+        return $this->toArrayList()->offsetGet($offset);
+    }
+
+    public function offsetSet($offset, $value): void
     {
     }
 
-    public function offsetSet($key, $value): void
-    {
-    }
-
-    public function offsetUnset($key): void
+    public function offsetUnset($offset): void
     {
     }
 
