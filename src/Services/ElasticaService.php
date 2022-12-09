@@ -48,6 +48,7 @@ final class ElasticaService
 
     public function setIndex(string $indexName): self
     {
+        $this->extend('updateIndexName', $indexName);
         $this->index = $this->client->getIndex($indexName);
 
         return $this;
@@ -71,7 +72,7 @@ final class ElasticaService
             $indexName = call_user_func(sprintf('%s::%s', $indexer, 'getIndexName'));
 
             $this->setIndex($indexName);
-            echo "Create index $indexName \n";
+            echo "Create index {$this->getIndex()->getName()} \n";
 
             $this->index->create([
                 'settings' => [
