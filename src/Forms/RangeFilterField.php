@@ -45,8 +45,8 @@ final class RangeFilterField extends FormField implements FilterFieldInterface
         parent::setValue($value, $data);
 
         if (is_array($value)) {
-            $this->fromField->setValue($value['From']);
-            $this->toField->setValue($value['To']);
+            $this->fromField->setValue((string)$value['From']);
+            $this->toField->setValue((string)$value['To']);
         }
 
         return $this;
