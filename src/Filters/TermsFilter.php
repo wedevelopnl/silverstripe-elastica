@@ -71,7 +71,7 @@ final class TermsFilter extends Filter implements FilterInterface, AggregatableF
     {
         $value = $this->getFilterField()->Value();
 
-        if (in_array($this->Type, [self::TYPE_CHECKBOX, self::TYPE_RADIO], true)) {
+        if ($this->Type === self::TYPE_CHECKBOX) {
             $value = is_array($value) ? $value : [];
         }
 
