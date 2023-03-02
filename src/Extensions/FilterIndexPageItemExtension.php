@@ -111,7 +111,7 @@ final class FilterIndexPageItemExtension extends SiteTreeExtension implements In
         $data['Visible'] = $this->getPageVisibility($this->owner);
         $data['Title'] = $this->owner->Title;
         $data['Content'] = $this->owner->Content;
-        $data['Url'] = $this->owner->getAbsoluteLiveLink(false);
+        $data['Url'] = $this->cleanUrl($this->owner->getAbsoluteLiveLink(false));
         $data[ElasticaService::SUGGEST_FIELD_NAME] = $this->fillSuggest(['Title','Content'], $data);
     }
 
