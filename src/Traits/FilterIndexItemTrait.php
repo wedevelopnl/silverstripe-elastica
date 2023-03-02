@@ -74,4 +74,9 @@ trait FilterIndexItemTrait
 
         return $this->getPageVisibility($page->getParent());
     }
+
+    private function cleanUrl(string $url): string
+    {
+        return explode('?', $url)[0];
+    }
 }
