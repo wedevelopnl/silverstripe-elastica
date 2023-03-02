@@ -62,7 +62,7 @@ final class GridElementIndexExtension extends DataExtension implements IndexItem
 
         if ($page instanceof SiteTree && $page->hasExtension(FilterIndexPageItemExtension::class)) {
             $data['Visible'] = $this->getPageVisibility($page);
-            $data['Url'] = $page->getAbsoluteLiveLink(false);
+            $data['Url'] = $this->cleanUrl($page->getAbsoluteLiveLink(false));
             $data['Title'] = $page->getTitle();
             $data[ElasticaService::SUGGEST_FIELD_NAME] = $this->fillSuggest(['Title', 'Content'], $data);
             /** @var FilterIndexPageItemExtension $page */

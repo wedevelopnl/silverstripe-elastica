@@ -93,4 +93,9 @@ trait FilterIndexItemTrait
 
         return ['input' => $analyzed];
     }
+
+    private function cleanUrl(string $url): string
+    {
+        return explode('?', $url)[0];
+    }
 }
