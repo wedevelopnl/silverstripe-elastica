@@ -79,6 +79,9 @@ class ElasticaService
         Versioned::set_reading_mode(Versioned::LIVE);
 
         foreach ($this->getIndexClasses() as $indexer) {
+            if (count(ClassInfo::classesWithExtension($indexer)) === 0) {
+                continue;
+            }
 
             $indexName = $this->getindexName($indexer);
             $this->setIndex($indexName);
