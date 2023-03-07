@@ -23,7 +23,7 @@ final class RangeFilter extends Filter implements FilterInterface, AggregatableF
     {
         $value = $this->getFilterField()->Value();
 
-        if (empty($value['From']) || empty($value['To'])) {
+        if ($value['From'] === "" || $value['To'] === "") {
             return null;
         }
 
