@@ -109,6 +109,7 @@ final class FilterIndexPageItemExtension extends SiteTreeExtension implements In
         $data['PageId'] = $this->owner->getElasticaId();
         $data['ParentID'] = $this->owner->ParentID;
         $data['Visible'] = $this->getPageVisibility($this->owner);
+        $data['ShowInSearch'] = $this->owner->ShowInSearch;
         $data['Title'] = $this->owner->Title;
         $data['Content'] = $this->owner->Content;
         $data['Url'] = $this->cleanUrl($this->owner->getAbsoluteLiveLink(false));
