@@ -54,9 +54,11 @@ class GridElementIndexExtension extends DataExtension implements IndexItemInterf
         if ($page) {
             $data['PageId'] = $page->getElasticaPageId();
             $data['Visible'] = $this->getPageVisibility($page);
+            $data['ShowInSearch'] = $page->ShowInSearch;
         } else {
             $data['PageId'] = 'none';
             $data['Visible'] = false;
+            $data['ShowInSearch'] = false;
         }
 
         $data['ElementTitle'] = $this->owner->getTitle();
