@@ -97,6 +97,11 @@ class GridElementIndexExtension extends DataExtension implements IndexItemInterf
         $this->elasticaService->setIndex(self::getIndexName())->add($this);
     }
 
+    public function deleteElasticaDocument()
+    {
+        $this->elasticaService->setIndex(self::getIndexName())->delete($this);
+    }
+
     public static function getIndexName()
     {
         $name =  sprintf('content-%s-%s', Environment::getEnv('ELASTICSEARCH_INDEX'), self::INDEX_SUFFIX);
