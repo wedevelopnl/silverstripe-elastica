@@ -67,9 +67,12 @@ final class GridElementIndexExtension extends DataExtension implements IndexItem
             $data[ElasticaService::SUGGEST_FIELD_NAME] = $this->fillSuggest(['Title', 'Content'], $data);
             /** @var FilterIndexPageItemExtension $page */
             $data['PageId'] = $page->getElasticaId();
+            $data['ShowInSearch'] = $page->ShowInSearch;
         } else {
             $data['PageId'] = 'none';
             $data['Visible'] = false;
+
+            $data['ShowInSearch'] = false;
         }
 
         $data['ElementTitle'] = $this->owner->getTitle();
@@ -81,7 +84,12 @@ final class GridElementIndexExtension extends DataExtension implements IndexItem
 
     public function onAfterPublish(): void
     {
-        $this->updateElasticaDocument();
+        if ($this->owner->getPage()->ShowInSearch) {
+            $this->updateElasticaDocument();
+        } else {
+            $this->deleteElasticaDocument();
+        }
+
     }
 
     public function onAfterUnpublish(): void

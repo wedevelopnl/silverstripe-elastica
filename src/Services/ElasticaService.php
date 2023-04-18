@@ -125,10 +125,18 @@ final class ElasticaService
 
             $this->extend('updateReindexDocuments', $documents);
 
+            $removeDocuments = $this->filterNotSearchable($documents);
+
             echo "Add documents\n";
             if (count($documents) > 0) {
                 $this->index->addDocuments($documents);
             }
+
+            echo "Remove documents\n";
+            if (count($removeDocuments) > 0) {
+                $this->index->deleteDocuments($removeDocuments);
+            }
+
             echo "Done\n";
         }
     }
@@ -208,5 +216,18 @@ final class ElasticaService
     public function getIndex(): Index
     {
         return $this->index;
+    }
+
+    protected function filterNotSearchable(&$documents) {
+        $notSearchable = [];
+
+        foreach ($documents as $index => $document) {
+            if ($document->has('ShowInSearch') && !$document->get('ShowInSearch')) {
+                $notSearchable[] = $document;
+                unset($documents[$index]);
+            }
+        }
+
+        return $notSearchable;
     }
 }
