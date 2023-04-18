@@ -35,9 +35,14 @@ class FilterIndexPageItemExtension extends SiteTreeExtension implements IndexIte
 
     public function onAfterPublish(&$original)
     {
-        $this->elasticaService->setIndex(self::getIndexName())->add($this);
+        if ($this->owner->ShowInSearch) {
+            $this->updateElasticaDocument();
+            $this->updateElementsIndex($this->owner);
+        } else {
+            $this->deleteElasticaDocument();
+            $this->deleteElementsIndex($this->owner);
+        }
 
-        $this->updateElementsIndex($this->owner);
         $this->updateChildren($this->owner);
     }
 
@@ -46,7 +51,7 @@ class FilterIndexPageItemExtension extends SiteTreeExtension implements IndexIte
         $this->updateElementsIndex($this->owner);
         $this->updateChildren($this->owner);
 
-        $this->elasticaService->setIndex(self::getIndexName())->delete($this);
+        $this->deleteElasticaDocument($this);
     }
 
     protected function updateChildren(SiteTree $page)
@@ -55,7 +60,7 @@ class FilterIndexPageItemExtension extends SiteTreeExtension implements IndexIte
             if ($pageChild->isPublished()) {
                 $pageChild->updateElasticaDocument();
             } else {
-                $this->elasticaService->setIndex(self::getIndexName())->delete($pageChild);
+                $pageChild->deleteElasticaDocument();
             }
             $this->updateElementsIndex($pageChild);
             $this->updateChildren($pageChild);
@@ -73,9 +78,25 @@ class FilterIndexPageItemExtension extends SiteTreeExtension implements IndexIte
         }
     }
 
+    protected function deleteElementsIndex($page)
+    {
+        /** @var DataObject $element */
+        foreach ($page->findOwned() as $element) {
+            $elementClass = get_class($element);
+            if (in_array($elementClass, GridElementIndexExtension::getExtendedClasses())) {
+                $element->deleteElasticaDocument();
+            }
+        }
+    }
+
     public function updateElasticaDocument()
     {
         $this->elasticaService->setIndex(self::getIndexName())->add($this);
+    }
+
+    public function deleteElasticaDocument()
+    {
+        $this->elasticaService->setIndex(self::getIndexName())->delete($this);
     }
 
     public function updateElasticaFields(&$fields)
@@ -105,6 +126,7 @@ class FilterIndexPageItemExtension extends SiteTreeExtension implements IndexIte
         $data['PageId'] = $this->owner->getElasticaPageId();
         $data['ParentID'] = $this->owner->ParentID;
         $data['Visible'] = $this->getPageVisibility($this->owner);
+        $data['ShowInSearch'] = $this->owner->ShowInSearch;
         $data['Title'] = $this->owner->Title;
         $data['Content'] = $this->owner->Content;
         $data['Url'] = $this->cleanUrl($this->owner->getAbsoluteLiveLink(false));

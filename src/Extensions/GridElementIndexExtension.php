@@ -54,9 +54,11 @@ class GridElementIndexExtension extends DataExtension implements IndexItemInterf
         if ($page) {
             $data['PageId'] = $page->getElasticaPageId();
             $data['Visible'] = $this->getPageVisibility($page);
+            $data['ShowInSearch'] = $page->ShowInSearch;
         } else {
             $data['PageId'] = 'none';
             $data['Visible'] = false;
+            $data['ShowInSearch'] = false;
         }
 
         $data['ElementTitle'] = $this->owner->getTitle();
@@ -77,12 +79,17 @@ class GridElementIndexExtension extends DataExtension implements IndexItemInterf
 
     public function onAfterPublish()
     {
-        $this->updateElasticaDocument();
+        if ($this->owner->getPage()->ShowInSearch) {
+            $this->updateElasticaDocument();
+        } else {
+            $this->deleteElasticaDocument();
+        }
+
     }
 
     public function onAfterUnpublish()
     {
-        $this->elasticaService->setIndex(self::getIndexName())->delete($this);
+        $this->deleteElasticaDocument();
     }
 
     public function onBeforeDelete()
@@ -93,6 +100,11 @@ class GridElementIndexExtension extends DataExtension implements IndexItemInterf
     public function updateElasticaDocument()
     {
         $this->elasticaService->setIndex(self::getIndexName())->add($this);
+    }
+
+    public function deleteElasticaDocument()
+    {
+        $this->elasticaService->setIndex(self::getIndexName())->delete($this);
     }
 
     public static function getIndexName()
