@@ -79,12 +79,17 @@ class GridElementIndexExtension extends DataExtension implements IndexItemInterf
 
     public function onAfterPublish()
     {
-        $this->updateElasticaDocument();
+        if ($this->owner->getPage()->ShowInSearch) {
+            $this->updateElasticaDocument();
+        } else {
+            $this->deleteElasticaDocument();
+        }
+
     }
 
     public function onAfterUnpublish()
     {
-        $this->elasticaService->setIndex(self::getIndexName())->delete($this);
+        $this->deleteElasticaDocument();
     }
 
     public function onBeforeDelete()
