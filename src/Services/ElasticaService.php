@@ -49,6 +49,15 @@ final class ElasticaService
     public function setIndex(string $indexName): self
     {
         $this->extend('updateIndexName', $indexName);
+
+        if (class_exists('TractorCow\Fluent\State\FluentState')) {
+            $locale = strtolower(\TractorCow\Fluent\State\FluentState::singleton()->getLocale());
+
+            if (!str_contains($indexName, $locale)) {
+                $indexName .= '-' . strtolower($locale);
+            }
+        }
+
         $this->index = $this->client->getIndex($indexName);
 
         return $this;
