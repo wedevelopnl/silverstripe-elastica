@@ -1,28 +1,28 @@
 <?php
 
-declare(strict_types=1);
+namespace WeDevelop\Elastica\Extensions;
 
-namespace TheWebmen\Elastica\Extensions;
-
-use SilverStripe\CMS\Model\SiteTree;
+use SilverStripe\Core\Extensible;
+use SilverStripe\Core\Extension;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\GridField\GridField;
 use SilverStripe\Forms\GridField\GridFieldAddNewButton;
 use SilverStripe\Forms\GridField\GridFieldConfig_RecordEditor;
-use SilverStripe\ORM\DataExtension;
+use SilverStripe\Forms\GridField\GridFieldDeleteAction;
+use SilverStripe\Forms\GridField\GridFieldEditButton;
+use SilverStripe\ORM\ArrayList;
 use SilverStripe\ORM\HasManyList;
 use Symbiote\GridFieldExtensions\GridFieldAddNewMultiClass;
 use Symbiote\GridFieldExtensions\GridFieldOrderableRows;
-use TheWebmen\Elastica\Filters\Filter;
-use TheWebmen\Elastica\Services\ElasticaService;
+use WeDevelop\Elastica\Filters\Filter;
+use WeDevelop\Elastica\Traits\Configurable;
+use WeDevelop\Elastica\Traits\ElasticaConfigurable;
 
-/**
- * @property FilterPageExtension $owner
- * @method HasManyList|Filter[] Filters()
- * @mixin SiteTree
- */
-final class FilterPageExtension extends DataExtension
+class FilterPageExtension extends Extension
 {
+    use Extensible;
+    use ElasticaConfigurable;
+
     /** @config */
     private static array $has_many = [
         'Filters' => Filter::class,
@@ -30,6 +30,8 @@ final class FilterPageExtension extends DataExtension
 
     public function updateCMSFields(FieldList $fields): void
     {
+        $this->addConfigFilters($fields);
+
         $filtersGridFieldConfig = GridFieldConfig_RecordEditor::create()
             ->addComponent(new GridFieldOrderableRows('Sort'))
             ->removeComponentsByType(GridFieldAddNewButton::class)
@@ -38,11 +40,28 @@ final class FilterPageExtension extends DataExtension
         $fields->addFieldToTab('Root.Elastica', GridField::create(
             'Filters',
             'Filters',
-            $this->owner->Filters(),
+            $filters = $this->owner->Filters(),
             $filtersGridFieldConfig
         ));
     }
 
+    private function addConfigFilters(FieldList &$fields): void
+    {
+        $configFilters = $this->getFiltersFromConfig();
+
+        $configFiltersGridFieldConfig = GridFieldConfig_RecordEditor::create()
+            ->removeComponentsByType(GridFieldAddNewButton::class)
+            ->removeComponentsByType(GridFieldDeleteAction::class)
+            ->removeComponentsByType(GridFieldEditButton::class);
+
+        $fields->addFieldToTab('Root.Elastica', GridField::create(
+            'ConfigFilters',
+            'ConfigFilters',
+            new ArrayList($configFilters),
+            $configFiltersGridFieldConfig
+        )->setReadonly(true));
+
+    }
     /**
      * @return string[]
      */
@@ -50,69 +69,49 @@ final class FilterPageExtension extends DataExtension
     {
         $fields = [];
 
-        ElasticaService::singleton()->setIndex(FilterIndexPageItemExtension::getIndexName());
-
-        foreach (FilterIndexPageItemExtension::getExtendedClasses() as $class) {
-            /** @var FilterIndexPageItemExtension $object */
-            $object = $class::singleton();
-
-            $fields = array_merge($fields, array_keys($object->getElasticaFields()));
+        $filterClass = $this->getConfig('filter_class');
+        if (!$filterClass::has_extension(SearchableObjectExtension::class)) {
+            return $fields;
         }
+
+        $instance = SearchableObjectExtension::createInstance($filterClass);
+        $fields = array_keys($instance->getElasticaFields());
 
         if (method_exists($this->owner, 'updateAvailableElasticaFields')) {
             $this->owner->updateAvailableElasticaFields($fields);
         }
 
-        return $fields;
-    }
-
-    /**
-     * @return string[]
-     */
-    public function getAvailableElasticaCompletionFields(): array
-    {
-        $fields = [];
-
-        ElasticaService::singleton()->setIndex(FilterIndexPageItemExtension::getIndexName());
-
-        foreach (FilterIndexPageItemExtension::getExtendedClasses() as $class) {
-            /** @var FilterIndexPageItemExtension $object */
-            $object = $class::singleton();
-
-            $fields = array_merge(
-                $fields,
-                $this->getAvailableElasticaCompletionFieldsFromArray($object->getElasticaFields())
-            );
-        }
-
-        if (method_exists($this->owner, 'updateAvailableElasticaCompletionFields')) {
-            $this->owner->updateAvailableElasticaCompletionFields($fields);
-        }
+        $this->extend('updateAvailableElasticaFields', $fields);
 
         return $fields;
     }
 
-    /**
-     * @param array<string, array<string, mixed>> $array
-     * @return string[]
-     */
-    private function getAvailableElasticaCompletionFieldsFromArray(array $array, ?string $name = null): array
+    public function getFiltersFromConfig(): array
     {
-        $fields = [];
+        $filterConfig = $this->getConfig('filters');
 
-        foreach ($array as $key => $field) {
-            if ($field['type'] === 'completion') {
-                $fields[] = ltrim("{$name}.{$key}", '.');
-            }
-
-            if (isset($field['fields'])) {
-                $fields = array_merge(
-                    $fields,
-                    $this->getAvailableElasticaCompletionFieldsFromArray($field['fields'], "{$name}.{$key}")
-                );
-            }
+        if (!$filterConfig) {
+            return [];
         }
 
-        return $fields;
+        $filters = [];
+        foreach ($filterConfig as $filter) {
+            $class = $filter['class'];
+            $filterInstance = new $class();
+            $filterInstance->ID = $filter['id'];
+            $filterInstance->Name = $filter['name'];
+            $filterInstance->Title = $filter['title'];
+            $filterInstance->FieldName = $filter['field_name'];
+            $filterInstance->Sort = $filter['sort'];
+            $filterInstance->Editable = false;
+
+            $filters[] = $filterInstance;
+        }
+
+        return $filters;
+    }
+
+    public function getElasticaConfig($key) {
+        return $this->getConfig($key);
     }
 }

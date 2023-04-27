@@ -1,21 +1,22 @@
 {
-  "name": "thewebmen/silverstripe-elastica",
-  "description": "facet filters",
+  "name": "wedevelop/silverstripe-elastica",
+  "description": "elasticsearch extension for silverstripe",
   "type": "silverstripe-vendormodule",
   "keywords": ["elastica", "elasticsearch", "facet", "filters"],
   "require": {
       "ext-json": "*",
-      "silverstripe/framework": "^4.11",
+      "php": ">=8.1",
+      "silverstripe/framework": "^4.12",
       "ruflin/elastica": "^7.1",
       "symbiote/silverstripe-gridfieldextensions": "^3.4",
       "silverstripe/tagfield": "^2.9"
   },
   "autoload": {
     "psr-4": {
-        "TheWebmen\\Elastica\\": "src/"
+        "WeDevelop\\Elastica\\": "src/"
     }
   },
   "require-dev": {
-    "friendsofphp/php-cs-fixer": "^2.15"
+    "friendsofphp/php-cs-fixer": "^3.4"
   }
 }

@@ -1,47 +1,39 @@
 <?php
 
-declare(strict_types=1);
+namespace WeDevelop\Elastica\Extensions;
 
-namespace TheWebmen\Elastica\Extensions;
-
-use SilverStripe\CMS\Controllers\ContentController;
+use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Extension;
-use TheWebmen\Elastica\Filters\Filter;
-use TheWebmen\Elastica\Forms\FilterForm;
-use TheWebmen\Elastica\Interfaces\AggregatableFilterInterface;
-use TheWebmen\Elastica\Model\FacetIndexItemsList;
-use TheWebmen\Elastica\Model\PaginatedList;
-use TheWebmen\Elastica\Services\ElasticaService;
+use SilverStripe\Core\Injector\Injector;
+use SilverStripe\Forms\FieldList;
+use SilverStripe\Forms\GridField\GridField;
+use SilverStripe\Forms\GridField\GridFieldAddNewButton;
+use SilverStripe\Forms\GridField\GridFieldConfig_RecordEditor;
+use SilverStripe\ORM\ArrayList;
+use SilverStripe\ORM\HasManyList;
+use Symbiote\GridFieldExtensions\GridFieldAddNewMultiClass;
+use Symbiote\GridFieldExtensions\GridFieldOrderableRows;
+use WeDevelop\Elastica\Model\PaginatedList;
+use WeDevelop\Elastica\Filters\Filter;
+use WeDevelop\Elastica\Forms\FilterForm;
+use WeDevelop\Elastica\Model\FacetIndexItemsList;
+use WeDevelop\Elastica\Traits\Configurable;
+use WeDevelop\Elastica\Traits\ElasticaConfigurable;
 
-/**
- * @property FilterPageControllerExtension $owner
- * @method FilterPageExtension data()
- * @mixin ContentController
- */
-final class FilterPageControllerExtension extends Extension
+class FilterPageControllerExtension extends Extension
 {
-    /** @config */
-    private static int $items_per_page = 24;
+    use Extensible;
+    use ElasticaConfigurable;
 
     /** @config */
     private static array $allowed_actions = [
         'FilterForm',
     ];
 
-    private ?FacetIndexItemsList $list = null;
+    private FacetIndexItemsList $list;
 
-    private array $filters = [];
-
-    /**
-     * @return Filter[]
-     */
-    public function getFilters(): array
+    public function __construct(protected array $filters = [])
     {
-        if (!$this->filters) {
-            $this->filters = $this->owner->data()->Filters()->toArray();
-        }
-
-        return $this->filters;
     }
 
     public function FilterForm(): FilterForm
@@ -53,6 +45,19 @@ final class FilterPageControllerExtension extends Extension
         }
 
         return $form;
+    }
+
+    public function getFilters(): array
+    {
+        if (!$this->filters) {
+            $this->filters = $this->owner->data()->Filters()->toArray();
+            if ($this->getOwner()->data()->hasExtension(FilterPageExtension::class)) {
+                $configFilters = $this->getOwner()->data()->getFiltersFromConfig();(
+                $this->filters = array_merge($this->filters, $configFilters));
+            }
+        }
+
+        return $this->filters;
     }
 
     public function PaginatedFilterList(): PaginatedList
@@ -68,9 +73,9 @@ final class FilterPageControllerExtension extends Extension
         return $list;
     }
 
-    public function getFilterList(): FacetIndexItemsList
+    public function getFilterList()
     {
-        if (!$this->list) {
+        if (!isset($this->list)) {
             $query = new \Elastica\Query();
             $bool = new \Elastica\Query\BoolQuery();
 
@@ -81,10 +86,8 @@ final class FilterPageControllerExtension extends Extension
                     $bool->addMust($filterQuery);
                 }
 
-                if ($filter instanceof AggregatableFilterInterface) {
-                    $aggregation = $filter->getAggregation($this->getFilters());
-
-                    $filter->extend('updateAggregation', $aggregation);
+                $aggregation = $filter->getAggregation($this->getFilters());
+                if ($aggregation) {
                     $query->addAggregation($aggregation);
                 }
             }
@@ -107,11 +110,26 @@ final class FilterPageControllerExtension extends Extension
                 $this->owner->updateQuery($query);
             }
 
-            $elasticaService = ElasticaService::singleton()->setIndex(FilterIndexPageItemExtension::getIndexName());
+            $elasticaService = Injector::inst()->get('ElasticaService')->setIndex($this->getSearchIndex());
 
-            $this->list = FacetIndexItemsList::create($elasticaService->getIndex(), $query);
+            $list = new FacetIndexItemsList($elasticaService->getIndex(), $query);
+
+            $this->list = $list;
         }
 
         return $this->list;
+    }
+
+    private function getSearchIndex(): ?string
+    {
+        $filterPage = $this->getOwner()->data();
+        if (!$filterPage->hasExtension(FilterPageExtension::class)) {
+            return null;
+        }
+
+        $searchClass = $filterPage->getElasticaConfig('filter_class');
+        $searchClassSearchableInstance = SearchableObjectExtension::createInstance($searchClass);
+
+        return $searchClassSearchableInstance->getStringifiedIndexName();
     }
 }

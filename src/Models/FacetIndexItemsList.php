@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace TheWebmen\Elastica\Model;
+namespace WeDevelop\Elastica\Model;
 
 use Elastica\Index;
 use Elastica\Query;
@@ -13,7 +13,7 @@ use SilverStripe\ORM\Limitable;
 use SilverStripe\ORM\Map;
 use SilverStripe\ORM\SS_List;
 use SilverStripe\View\ViewableData;
-use TheWebmen\Elastica\Services\ElasticaService;
+use WeDevelop\Elastica\Services\ElasticaService;
 
 final class FacetIndexItemsList extends ViewableData implements SS_List, Limitable
 {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace TheWebmen\Elastica\Model;
+namespace WeDevelop\Elastica\Model;
 
 final class PaginatedList extends \SilverStripe\ORM\PaginatedList
 {

@@ -1,2 +1,0 @@
-$SearchField.FieldHolder
-$DistanceField.FieldHolder

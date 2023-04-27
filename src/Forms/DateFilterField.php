@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace TheWebmen\Elastica\Forms;
+namespace WeDevelop\Elastica\Forms;
 
 use SilverStripe\Forms\OptionsetField;
-use TheWebmen\Elastica\Interfaces\FilterFieldInterface;
-use TheWebmen\Elastica\Traits\FilterFieldTrait;
+use WeDevelop\Elastica\Interfaces\FilterFieldInterface;
+use WeDevelop\Elastica\Traits\FilterFieldTrait;
 
 final class DateFilterField extends OptionsetField implements FilterFieldInterface
 {

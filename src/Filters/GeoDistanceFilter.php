@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace TheWebmen\Elastica\Filters;
+namespace WeDevelop\Elastica\Filters;
 
 use Elastica\Query\AbstractQuery;
-use TheWebmen\Elastica\Forms\GeoDistanceFilterField;
-use TheWebmen\Elastica\Interfaces\FilterFieldInterface;
-use TheWebmen\Elastica\Interfaces\FilterInterface;
-use TheWebmen\Elastica\Services\GeocodeService;
+use WeDevelop\Elastica\Forms\GeoDistanceFilterField;
+use WeDevelop\Elastica\Interfaces\FilterFieldInterface;
+use WeDevelop\Elastica\Interfaces\FilterInterface;
+use WeDevelop\Elastica\Services\GeocodeService;
 
 /**
  * @property string $Placeholder
@@ -19,7 +19,7 @@ final class GeoDistanceFilter extends Filter implements FilterInterface
     private static string $singular_name = 'GeoDinstance';
 
     /** @config */
-    private static string $table_name = 'TheWebmen_Elastica_Filter_GeoDistanceFilter';
+    private static string $table_name = 'WeDevelop_Elastica_Filter_GeoDistanceFilter';
 
     /** @config */
     private static array $db = [

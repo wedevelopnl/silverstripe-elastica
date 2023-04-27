@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace TheWebmen\Elastica\Forms;
+namespace WeDevelop\Elastica\Forms;
 
 use SilverStripe\Control\HTTPResponse;
 use SilverStripe\Forms\TextField;
 use SilverStripe\ORM\FieldType\DBHTMLText;
-use TheWebmen\Elastica\Interfaces\FilterFieldInterface;
-use TheWebmen\Elastica\Services\ElasticaService;
-use TheWebmen\Elastica\Traits\FilterFieldTrait;
+use WeDevelop\Elastica\Interfaces\FilterFieldInterface;
+use WeDevelop\Elastica\Services\ElasticaService;
+use WeDevelop\Elastica\Traits\FilterFieldTrait;
 
 final class MultiMatchFilterField extends TextField implements FilterFieldInterface
 {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace TheWebmen\Elastica\Interfaces;
+namespace WeDevelop\Elastica\Interfaces;
 
 use Elastica\Query\AbstractQuery;
 

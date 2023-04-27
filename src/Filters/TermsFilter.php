@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace TheWebmen\Elastica\Filters;
+namespace WeDevelop\Elastica\Filters;
 
 use Elastica\Aggregation\AbstractAggregation;
 use Elastica\Aggregation\GlobalAggregation;
@@ -12,12 +12,12 @@ use Elastica\Query\Term;
 use Elastica\Query\Terms;
 use SilverStripe\Forms\DropdownField;
 use SilverStripe\Forms\FieldList;
-use TheWebmen\Elastica\Forms\TermsFilterCheckboxSetField;
-use TheWebmen\Elastica\Forms\TermsFilterDropdownField;
-use TheWebmen\Elastica\Forms\TermsFilterOptionsetField;
-use TheWebmen\Elastica\Interfaces\AggregatableFilterInterface;
-use TheWebmen\Elastica\Interfaces\FilterFieldInterface;
-use TheWebmen\Elastica\Interfaces\FilterInterface;
+use WeDevelop\Elastica\Forms\TermsFilterCheckboxSetField;
+use WeDevelop\Elastica\Forms\TermsFilterDropdownField;
+use WeDevelop\Elastica\Forms\TermsFilterOptionsetField;
+use WeDevelop\Elastica\Interfaces\AggregatableFilterInterface;
+use WeDevelop\Elastica\Interfaces\FilterFieldInterface;
+use WeDevelop\Elastica\Interfaces\FilterInterface;
 
 /**
  * @property string $Type
@@ -34,7 +34,7 @@ final class TermsFilter extends Filter implements FilterInterface, AggregatableF
     private static string $singular_name = 'Terms';
 
     /** @config */
-    private static string $table_name = 'TheWebmen_Elastica_Filter_TermsFilter';
+    private static string $table_name = 'WeDevelop_Elastica_Filter_TermsFilter';
 
     /** @config */
     private static array $db = [

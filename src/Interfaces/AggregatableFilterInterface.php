@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace TheWebmen\Elastica\Interfaces;
+namespace WeDevelop\Elastica\Interfaces;
 
 use Elastica\Aggregation\AbstractAggregation;
-use TheWebmen\Elastica\Filters\Filter;
+use WeDevelop\Elastica\Filters\Filter;
 
 interface AggregatableFilterInterface
 {

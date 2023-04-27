@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace TheWebmen\Elastica\Filters;
+namespace WeDevelop\Elastica\Filters;
 
 use Elastica\Query\AbstractQuery;
 use SilverStripe\Forms\DropdownField;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\TagField\StringTagField;
-use TheWebmen\Elastica\Forms\MultiMatchFilterField;
-use TheWebmen\Elastica\Interfaces\FilterFieldInterface;
-use TheWebmen\Elastica\Interfaces\FilterInterface;
+use WeDevelop\Elastica\Forms\MultiMatchFilterField;
+use WeDevelop\Elastica\Interfaces\FilterFieldInterface;
+use WeDevelop\Elastica\Interfaces\FilterInterface;
 
 /**
  * @property string $Placeholder
@@ -23,7 +23,7 @@ final class MultiMatchFilter extends Filter implements FilterInterface
     private static string $singular_name = 'MultiMatch';
 
     /** @config */
-    private static string $table_name = 'TheWebmen_Elastica_Filter_MultiMatchFilter';
+    private static string $table_name = 'WeDevelop_Elastica_Filter_MultiMatchFilter';
 
     /** @config */
     private static array $db = [

@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace TheWebmen\Elastica\Filters;
+namespace WeDevelop\Elastica\Filters;
 
 use Elastica\Aggregation\AbstractAggregation;
 use Elastica\Query\AbstractQuery;
-use TheWebmen\Elastica\Forms\RangeFilterField;
-use TheWebmen\Elastica\Interfaces\AggregatableFilterInterface;
-use TheWebmen\Elastica\Interfaces\FilterFieldInterface;
-use TheWebmen\Elastica\Interfaces\FilterInterface;
+use WeDevelop\Elastica\Forms\RangeFilterField;
+use WeDevelop\Elastica\Interfaces\AggregatableFilterInterface;
+use WeDevelop\Elastica\Interfaces\FilterFieldInterface;
+use WeDevelop\Elastica\Interfaces\FilterInterface;
 
 /**
  * @method RangeFilterField getFilterField()

@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace TheWebmen\Elastica\Filters;
+namespace WeDevelop\Elastica\Filters;
 
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Forms\DropdownField;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\ORM\DataObject;
-use TheWebmen\Elastica\Extensions\FilterPageExtension;
-use TheWebmen\Elastica\Interfaces\FilterFieldInterface;
-use TheWebmen\Elastica\Interfaces\FilterInterface;
+use WeDevelop\Elastica\Extensions\FilterPageExtension;
+use WeDevelop\Elastica\Interfaces\FilterFieldInterface;
+use WeDevelop\Elastica\Interfaces\FilterInterface;
 
 /**
  * @property string $Name
@@ -23,7 +23,7 @@ use TheWebmen\Elastica\Interfaces\FilterInterface;
 class Filter extends DataObject
 {
     /** @config */
-    private static string $table_name = 'TheWebmen_Elastica_Filter';
+    private static string $table_name = 'WeDevelop_Elastica_Filter';
 
     /** @config */
     private static array $db = [

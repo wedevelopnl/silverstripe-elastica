@@ -1,8 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
-namespace TheWebmen\Elastica\Forms;
+namespace WeDevelop\Elastica\Forms;
 
 use SilverStripe\Control\RequestHandler;
 use SilverStripe\Forms\DropdownField;
@@ -10,13 +8,12 @@ use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\Form;
 use SilverStripe\Forms\FormAction;
 use SilverStripe\Forms\FormField;
-use TheWebmen\Elastica\Extensions\FilterPageControllerExtension;
-use TheWebmen\Elastica\Interfaces\AggregatableFilterInterface;
+use SilverStripe\Forms\TextField;
+use WeDevelop\Elastica\Extensions\SearchableObjectExtension;
+use WeDevelop\Elastica\Interfaces\AggregatableFilterInterface;
+use WeDevelop\Elastica\Models\SearchResultList;
 
-/**
- * @method FilterPageControllerExtension getController()
- */
-final class FilterForm extends Form
+class FilterForm extends Form
 {
     public function __construct(RequestHandler $controller, $name = self::DEFAULT_NAME)
     {
@@ -31,7 +28,9 @@ final class FilterForm extends Form
             $fields->push(DropdownField::create('sort', '', array_combine($sortKeys, $sortKeys)));
         }
 
-        foreach ($this->getController()->getFilters() as $filter) {
+        $filters = $this->getController()->getFilters();
+
+        foreach ($filters as $filter) {
             $field = $filter->generateFilterField();
             $field->setFilter($filter);
             $filter->setFilterField($field);
@@ -57,7 +56,8 @@ final class FilterForm extends Form
             $filter->addAggregation($aggregation);
         }
 
-        $actions->push(FormAction::create('', 'Zoeken')->setAttribute('name', ''));
+        $actions->push(FormAction::create('', 'Zoeken')->setAttribute('name', '')->setInputType('button'));
+
         $this->setActions($actions);
 
         $this->setFormMethod('GET');

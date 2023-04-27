@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace TheWebmen\Elastica\Services;
+namespace WeDevelop\Elastica\Services;
 
 use Elastica\Client;
 use Elastica\Document;
@@ -13,11 +13,12 @@ use Elastica\Suggest;
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Injector\Injectable;
+use SilverStripe\ORM\DataObject;
 use SilverStripe\Versioned\Versioned;
-use TheWebmen\Elastica\Extensions\FilterIndexDataObjectItemExtension;
-use TheWebmen\Elastica\Extensions\FilterIndexPageItemExtension;
-use TheWebmen\Elastica\Extensions\GridElementIndexExtension;
-use TheWebmen\Elastica\Interfaces\IndexItemInterface;
+use WeDevelop\Elastica\Extensions\PageExtension;
+use WeDevelop\Elastica\Extensions\SearchableObjectExtension;
+use WeDevelop\Elastica\Extensions\ShowInSearchAwareOfExtension;
+
 
 final class ElasticaService
 {
@@ -43,133 +44,85 @@ final class ElasticaService
     public function __construct(array $config = [])
     {
         $this->client = new Client($config);
-        $this->setIndex(FilterIndexPageItemExtension::getIndexName());
     }
 
     public function setIndex(string $indexName): self
     {
         $this->extend('updateIndexName', $indexName);
+
         $this->index = $this->client->getIndex($indexName);
 
         return $this;
     }
 
-    public function add(IndexItemInterface $record): void
+    public function add(SearchableObjectExtension $record): void
     {
         $this->index->addDocument($record->getElasticaDocument());
     }
 
-    public function delete(IndexItemInterface $record): void
+    public function delete(SearchableObjectExtension $record): void
     {
         $this->index->deleteById($record->getElasticaId());
     }
 
     public function reindex(): void
     {
-        Versioned::set_reading_mode(Versioned::LIVE);
+        $indexableClasses = SearchableObjectExtension::getExtendedClasses(false);
 
-        foreach ($this->getIndexClasses() as $indexer) {
-            $indexName = call_user_func(sprintf('%s::%s', $indexer, 'getIndexName'));
+        $settings = [
+            'number_of_shards' => self::config()->get('number_of_shards'),
+            'number_of_replicas' => self::config()->get('number_of_replicas'),
+        ];
 
-            $this->setIndex($indexName);
+        foreach ($indexableClasses as $class) {
+            $indexer = SearchableObjectExtension::createInstance($class);
+
+            $this->setIndex($indexer->getIndexNames()[0]);
+
             echo "Create index {$this->getIndex()->getName()} \n";
 
-            $this->index->create([
-                'settings' => [
-                    'number_of_shards' => self::config()->get('number_of_shards'),
-                    'number_of_replicas' => self::config()->get('number_of_replicas'),
-                    'analysis' => [
-                        'filter' => [
-                            'dutch_stop' => [
-                                'type' => 'stop',
-                                'stopwords' => '_dutch_',
-                                'ignore_case' => true,
-                            ],
-                            'filename_stop' => [
-                                'type' => 'stop',
-                                'stopwords' => ['doc', 'jpg', 'jpeg', 'png', 'pdf', 'exe', 'csv'],
-                            ],
-                            'length' => [
-                                'type' => 'length',
-                                'min' => 3,
-                            ],
-                        ],
-                        'char_filter' => [
-                            'html' => [
-                                'type' => 'html_strip',
-                            ],
-                            'number_filter' => [
-                                'type' => 'pattern_replace',
-                                'pattern' => '\\d+',
-                                'replacement' => '',
-                            ],
-                            'file_filter' => [
-                                'type' => 'pattern_replace',
-                                'pattern' => '^[\\w\\-]+\\.[a-z]{1,4}$',
-                                'replacement' => '',
-                            ],
-                        ],
-                        'analyzer' => [
-                            'suggestion' => [
-                                'tokenizer' => 'standard',
-                                'filter' => ['dutch_stop', 'lowercase', 'filename_stop', 'length'],
-                                'char_filter' => ['html', 'number_filter', 'file_filter'],
-                            ],
-                        ],
-                    ],
-                ],
-            ], true);
+            $this->index->create(['settings' => array_merge($settings, $indexer->getElasticaSettings())], true);
             echo "Done\n";
 
-            $documents = $this->indexDocuments($indexer);
+            $documents = $this->indexDocuments($indexer, $class);
 
             $this->extend('updateReindexDocuments', $documents);
-
-            $removeDocuments = $this->filterNotSearchable($documents);
 
             echo "Add documents\n";
             if (count($documents) > 0) {
                 $this->index->addDocuments($documents);
             }
-
-            echo "Remove documents\n";
-            if (count($removeDocuments) > 0) {
-                $this->index->deleteDocuments($removeDocuments);
-            }
-
-            echo "Done\n";
         }
     }
 
     /**
      * @return Document[]
      */
-    private function indexDocuments(string $indexer): array
+    private function indexDocuments(SearchableObjectExtension $indexer, string $class): array
     {
         $documents = [];
-        $indexedClasses = call_user_func(sprintf('%s::%s', $indexer, 'getExtendedClasses'));
-        ;
 
-        foreach ($indexedClasses as $class) {
-            echo "Indexing {$class}\n";
+        echo "Indexing {$class}\n";
 
-            /** @var IndexItemInterface $instance */
-            $instance = $class::singleton();
-            $mapping = $instance->getElasticaMapping();
+        $mapping = $indexer->getElasticaMapping();
 
-            echo "Create mapping\n";
-            $mapping->send($this->index);
-            echo "Done\n";
+        echo "Create mapping\n";
+        $mapping->send($this->index);
+        echo "Done\n";
 
+        echo "Create documents\n";
+
+        $records = $class::get();
+
+        foreach ($records as $record) {
+            /** @var  SearchableObjectExtension $searchableInstance */
+            $searchableInstance = $record->getExtensionInstance(SearchableObjectExtension::class);
+            $searchableInstance->setOwner($record);
+            $documents[] = $searchableInstance->getElasticaDocument();
             echo "Create documents\n";
-
-            /** @var IndexItemInterface $record */
-            foreach (Versioned::get_by_stage($class, 'Live') as $record) {
-                $documents[] = $record->getElasticaDocument();
-                echo "Create documents\n";
-            }
-            echo "Done\n";
         }
+
+        echo "Done\n";
 
         return $documents;
     }
@@ -179,55 +132,8 @@ final class ElasticaService
         return $this->index->search($query);
     }
 
-    /**
-     * @param array<string, mixed> $options
-     */
-    public function suggest(string $field, string $query, array $options): ResultSet
-    {
-        $suggest = new Suggest();
-
-        $phrase = new Suggest\Completion($field, self::SUGGEST_FIELD_NAME);
-        $phrase->setPrefix($query);
-
-        if (!empty($options['fuzzy'])) {
-            $phrase->setFuzzy($options['fuzzy']);
-        }
-
-        $phrase->setSize($options['size']);
-        $phrase->setParam('skip_duplicates', $options['skip_duplicates']);
-
-        $suggest->addSuggestion($phrase);
-
-        return $this->index->search($suggest);
-    }
-
-    /**
-     * @return string[]
-     */
-    private function getIndexClasses(): array
-    {
-        return [
-            FilterIndexPageItemExtension::class,
-            FilterIndexDataObjectItemExtension::class,
-            GridElementIndexExtension::class,
-        ];
-    }
-
     public function getIndex(): Index
     {
         return $this->index;
-    }
-
-    protected function filterNotSearchable(&$documents) {
-        $notSearchable = [];
-
-        foreach ($documents as $index => $document) {
-            if ($document->has('ShowInSearch') && !$document->get('ShowInSearch')) {
-                $notSearchable[] = $document;
-                unset($documents[$index]);
-            }
-        }
-
-        return $notSearchable;
     }
 }

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace TheWebmen\Elastica\Traits;
+namespace WeDevelop\Elastica\Traits;
 
-use TheWebmen\Elastica\Filters\Filter;
+use WeDevelop\Elastica\Filters\Filter;
 
 trait FilterFieldTrait
 {

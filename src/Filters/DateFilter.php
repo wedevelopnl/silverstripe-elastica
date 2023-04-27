@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace TheWebmen\Elastica\Filters;
+namespace WeDevelop\Elastica\Filters;
 
 use Elastica\Aggregation\AbstractAggregation;
 use Elastica\Query\AbstractQuery;
-use TheWebmen\Elastica\Forms\DateFilterField;
-use TheWebmen\Elastica\Interfaces\AggregatableFilterInterface;
-use TheWebmen\Elastica\Interfaces\FilterFieldInterface;
-use TheWebmen\Elastica\Interfaces\FilterInterface;
+use WeDevelop\Elastica\Forms\DateFilterField;
+use WeDevelop\Elastica\Interfaces\AggregatableFilterInterface;
+use WeDevelop\Elastica\Interfaces\FilterFieldInterface;
+use WeDevelop\Elastica\Interfaces\FilterInterface;
 
 /**
  * @method DateFilterField getFilterField()
@@ -21,7 +21,7 @@ final class DateFilter extends Filter implements FilterInterface, AggregatableFi
 
     /** @config */
     private static array $mapping = [];
-    
+
     /** @config */
     private static bool $show_counts = true;
 
