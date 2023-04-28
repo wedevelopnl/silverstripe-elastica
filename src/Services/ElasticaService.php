@@ -11,6 +11,7 @@ use Elastica\Query;
 use Elastica\ResultSet;
 use Elastica\Suggest;
 use SilverStripe\Core\Config\Configurable;
+use SilverStripe\Core\ClassInfo;
 use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Versioned\Versioned;
@@ -18,6 +19,7 @@ use TheWebmen\Elastica\Extensions\FilterIndexDataObjectItemExtension;
 use TheWebmen\Elastica\Extensions\FilterIndexPageItemExtension;
 use TheWebmen\Elastica\Extensions\GridElementIndexExtension;
 use TheWebmen\Elastica\Interfaces\IndexItemInterface;
+use TractorCow\Fluent\State\FluentState;
 
 final class ElasticaService
 {
@@ -50,8 +52,8 @@ final class ElasticaService
     {
         $this->extend('updateIndexName', $indexName);
 
-        if (class_exists('TractorCow\Fluent\State\FluentState')) {
-            $locale = strtolower(\TractorCow\Fluent\State\FluentState::singleton()->getLocale());
+        if (ClassInfo::exists(FluentState::class)) {
+            $locale = strtolower(FluentState::singleton()->getLocale());
 
             if (!str_contains($indexName, $locale)) {
                 $indexName .= '-' . strtolower($locale);

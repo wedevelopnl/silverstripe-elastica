@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace TheWebmen\Elastica\Tasks;
 
 use SilverStripe\Dev\BuildTask;
+use SilverStripe\Core\ClassInfo;
 use TheWebmen\Elastica\Services\ElasticaService;
+use TractorCow\Fluent\Model\Locale;
+use TractorCow\Fluent\State\FluentState;
 
 final class ElasticaReindexTask extends BuildTask
 {
@@ -14,19 +17,20 @@ final class ElasticaReindexTask extends BuildTask
 
     public function run($request): void
     {
-        if (!class_exists('TractorCow\Fluent\State\FluentState')) {
-            $elasticaService = ElasticaService::singleton();
-            $elasticaService->reindex();
-            return;
+        if (ClassInfo::exists(FluentState::class)) {
+            $this->doRunFluent();
         }
+        else {
+            ElasticaService::singleton()->reindex();
+        }
+    }
 
-        foreach (\TractorCow\Fluent\Model\Locale::get() as $locale) {
-            \TractorCow\Fluent\State\FluentState::singleton()
-                ->withState(static function (\TractorCow\Fluent\State\FluentState $state) use ($locale) {
+    private function doRunFluent(): void {
+        foreach (Locale::get() as $locale) {
+            FluentState::singleton()
+                ->withState(static function (FluentState $state) use ($locale) {
                     $state->setLocale($locale->Locale);
-
-                    $elastica = ElasticaService::singleton();
-                    $elastica->reindex();
+                    ElasticaService::singleton()->reindex();
                 });
         }
     }
