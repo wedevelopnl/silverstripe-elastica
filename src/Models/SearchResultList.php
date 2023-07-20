@@ -63,7 +63,7 @@ class SearchResultList extends ViewableData
      * @param $currentPageNr
      * @return array
      */
-    protected function getSearchResult(ResultSet $searchResult, $currentUrl, $currentPageNr = 1, $pageSize, $pageOffset, $moveOffset = true)
+    protected function getSearchResult(ResultSet $searchResult, $currentUrl, $currentPageNr = 1, $pageSize = 10, $pageOffset = 2, $moveOffset = true)
     {
         $dataList = new \SilverStripe\ORM\ArrayList();
         $rows = $searchResult->getResults();
