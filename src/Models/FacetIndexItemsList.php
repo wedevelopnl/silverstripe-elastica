@@ -120,18 +120,14 @@ class FacetIndexItemsList extends ViewableData implements SS_List, Limitable
         return new Map($this, $keyField, $titleField);
     }
 
-    /**
-     * @return \ArrayIterator
-     */
+
+    #[\ReturnTypeWillChange]
     public function getIterator()
     {
         return new \ArrayIterator($this->toArray());
     }
 
-    /**
-     * @return int
-     */
-    public function count()
+    public function count(): int
     {
         return $this->getResultSet()->count();
     }
@@ -170,20 +166,26 @@ class FacetIndexItemsList extends ViewableData implements SS_List, Limitable
     {
     }
 
-    public function offsetExists($key)
+    #[\ReturnTypeWillChange]
+    public function offsetExists(#[LanguageLevelTypeAware(['8.0' => 'mixed'], default: '')] $offset)
     {
     }
 
-    public function offsetGet($key)
+    #[\ReturnTypeWillChange]
+    public function offsetGet(#[LanguageLevelTypeAware(['8.0' => 'mixed'], default: '')] $offset)
     {
     }
 
-    public function offsetSet($key, $value)
-    {
+    #[\ReturnTypeWillChange]
+    public function offsetSet(
+        #[LanguageLevelTypeAware(['8.0' => 'mixed'], default: '')] $offset,
+        #[LanguageLevelTypeAware(['8.0' => 'mixed'], default: '')] $value
+    ) {
         user_error("Can't alter items in a DataList using array-access", E_USER_ERROR);
     }
 
-    public function offsetUnset($key)
+    #[\ReturnTypeWillChange]
+    public function offsetUnset(#[LanguageLevelTypeAware(['8.0' => 'mixed'], default: '')] $offset)
     {
         user_error("Can't alter items in a DataList using array-access", E_USER_ERROR);
     }
