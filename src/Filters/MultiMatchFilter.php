@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace TheWebmen\Elastica\Filters;
 
 use Elastica\Query\AbstractQuery;
-use SilverStripe\Forms\DropdownField;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\TagField\StringTagField;
 use TheWebmen\Elastica\Forms\MultiMatchFilterField;
@@ -14,8 +13,6 @@ use TheWebmen\Elastica\Interfaces\FilterInterface;
 
 /**
  * @property string $Placeholder
- * @property string $AutocompleteFieldName
- * @property string $AutocompleteTitleFieldName
  */
 final class MultiMatchFilter extends Filter implements FilterInterface
 {
@@ -28,8 +25,6 @@ final class MultiMatchFilter extends Filter implements FilterInterface
     /** @config */
     private static array $db = [
         'Placeholder' => 'Varchar',
-        'AutocompleteFieldName' => 'Varchar',
-        'AutocompleteTitleFieldName' => 'Varchar',
     ];
 
     public function getCMSFields(): FieldList
@@ -37,7 +32,6 @@ final class MultiMatchFilter extends Filter implements FilterInterface
         $fields = parent::getCMSFields();
 
         $availableFields = $this->Page()->getAvailableElasticaFields();
-        $availableCompletionFields = $this->Page()->getAvailableElasticaCompletionFields();
 
         $fields->addFieldToTab(
             'Root.Main',
@@ -48,20 +42,6 @@ final class MultiMatchFilter extends Filter implements FilterInterface
                 $this->getFields(),
             )
         );
-
-        $fields->addFieldsToTab('Root.Autocomplete', [
-            DropdownField::create(
-                'AutocompleteFieldName',
-                'Autocomplete field name',
-                array_combine($availableCompletionFields, $availableCompletionFields),
-            ),
-            DropdownField::create(
-                'AutocompleteTitleFieldName',
-                'Autocomplete title field name',
-                array_combine($availableFields, $availableFields),
-                $this->AutocompleteTitleFieldName,
-            ),
-        ]);
 
         return $fields;
     }

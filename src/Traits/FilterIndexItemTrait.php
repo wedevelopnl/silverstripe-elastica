@@ -27,9 +27,9 @@ trait FilterIndexItemTrait
         return $fields;
     }
 
-    public function getElasticaMapping(): \Elastica\Mapping
+    public function getElasticaMapping(): \Elastica\Type\Mapping
     {
-        $mapping = new \Elastica\Mapping();
+        $mapping = new \Elastica\Type\Mapping();
         $mapping->setProperties($this->getElasticaFields());
         $mapping->setParam('date_detection', false);
 
@@ -67,31 +67,6 @@ trait FilterIndexItemTrait
         }
 
         return $this->getPageVisibility($page->getParent());
-    }
-
-    /**
-     * @param string[] $fields
-     * @param array<string, mixed> $data
-     * @return array<string, mixed>
-     */
-    public function fillSuggest(array $fields, array $data): array
-    {
-        $analyzed = [];
-
-        foreach ($fields as $field) {
-            $text = $data[$field] ?? '';
-
-            if (empty($text)) {
-                continue;
-            }
-
-            $words = array_column($this->elasticaService->getIndex()->analyze(['analyzer' => 'suggestion', 'text' => $text]), 'token');
-            $analyzed = array_merge($words, $analyzed);
-        }
-
-        $analyzed = array_values(array_unique($analyzed));
-
-        return ['input' => $analyzed];
     }
 
     private function cleanUrl(string $url): string

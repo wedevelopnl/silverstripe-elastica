@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace TheWebmen\Elastica\Interfaces;
 
 use Elastica\Document;
-use Elastica\Mapping;
+use Elastica\Type\Mapping;
 use SilverStripe\ORM\DataObject;
 
 /**
@@ -30,11 +30,4 @@ interface IndexItemInterface
      * @return string[]
      */
     public static function getExtendedClasses(): array;
-
-    /**
-     * @param string[] $fields
-     * @param array<string, mixed> $data
-     * @return array<string, mixed>
-     */
-    public function fillSuggest(array $fields, array $data): array;
 }

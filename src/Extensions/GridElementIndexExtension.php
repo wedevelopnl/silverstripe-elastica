@@ -6,13 +6,13 @@ namespace TheWebmen\Elastica\Extensions;
 
 use DNADesign\Elemental\Models\BaseElement;
 use SilverStripe\CMS\Model\SiteTree;
+use SilverStripe\Core\ClassInfo;
+use SilverStripe\Core\Environment;
 use SilverStripe\ORM\DataExtension;
+use SilverStripe\ORM\DataObject;
+use TheWebmen\Elastica\Interfaces\IndexItemInterface;
 use TheWebmen\Elastica\Services\ElasticaService;
 use TheWebmen\Elastica\Traits\FilterIndexItemTrait;
-use SilverStripe\Core\Environment;
-use TheWebmen\Elastica\Interfaces\IndexItemInterface;
-use SilverStripe\Core\ClassInfo;
-use SilverStripe\ORM\DataObject;
 
 /**
  * @property BaseElement $owner
@@ -39,16 +39,12 @@ final class GridElementIndexExtension extends DataExtension implements IndexItem
     {
         $fields['PageId'] = ['type' => 'keyword'];
         $fields['Visible'] = ['type' => 'boolean'];
-        $fields['ElementTitle'] = ['type' => 'text'];
-        $fields['Content'] = ['type' => 'text'];
-        $fields['Title'] = ['type' => 'text'];
+        $fields['ElementTitle'] = ['type' => 'string'];
+        $fields['Content'] = ['type' => 'string'];
+        $fields['Title'] = ['type' => 'string'];
         $fields['Url'] = [
-            'type' => 'text',
+            'type' => 'string',
             'fielddata' => true,
-        ];
-        $fields[ElasticaService::SUGGEST_FIELD_NAME] = [
-            'type' => 'completion',
-            'analyzer' => 'suggestion',
         ];
     }
 
@@ -64,7 +60,6 @@ final class GridElementIndexExtension extends DataExtension implements IndexItem
             $data['Visible'] = $this->getPageVisibility($page);
             $data['Url'] = $this->cleanUrl($page->getAbsoluteLiveLink(false));
             $data['Title'] = $page->getTitle();
-            $data[ElasticaService::SUGGEST_FIELD_NAME] = $this->fillSuggest(['Title', 'Content'], $data);
             /** @var FilterIndexPageItemExtension $page */
             $data['PageId'] = $page->getElasticaId();
             $data['ShowInSearch'] = $page->ShowInSearch;
@@ -114,7 +109,7 @@ final class GridElementIndexExtension extends DataExtension implements IndexItem
 
     public static function getIndexName(): string
     {
-        $name =  sprintf('content-%s-%s', Environment::getEnv('ELASTICSEARCH_INDEX'), self::INDEX_SUFFIX);
+        $name = sprintf('content-%s-%s', Environment::getEnv('ELASTICSEARCH_INDEX'), self::INDEX_SUFFIX);
 
         if (Environment::getEnv('ELASTICSEARCH_INDEX_CONTENT_PREFIX')) {
             $name = sprintf('%s-%s', Environment::getEnv('ELASTICSEARCH_INDEX_CONTENT_PREFIX'), $name);

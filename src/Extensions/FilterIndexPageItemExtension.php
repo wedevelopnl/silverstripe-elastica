@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace TheWebmen\Elastica\Extensions;
 
-use SilverStripe\Core\Environment;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\CMS\Model\SiteTreeExtension;
+use SilverStripe\Core\ClassInfo;
+use SilverStripe\Core\Environment;
 use SilverStripe\ORM\DataObject;
+use TheWebmen\Elastica\Interfaces\IndexItemInterface;
 use TheWebmen\Elastica\Services\ElasticaService;
 use TheWebmen\Elastica\Traits\FilterIndexItemTrait;
-use TheWebmen\Elastica\Interfaces\IndexItemInterface;
-use SilverStripe\Core\ClassInfo;
 
 /**
  * @property FilterIndexPageItemExtension|SiteTree $owner
@@ -106,20 +106,11 @@ final class FilterIndexPageItemExtension extends SiteTreeExtension implements In
         $fields['PageId'] = ['type' => 'keyword'];
         $fields['Visible'] = ['type' => 'boolean'];
         $fields['Title'] = [
-            'type' => 'text',
+            'type' => 'string',
             'fielddata' => true,
-            'fields' => [
-                'completion' => [
-                    'type' => 'completion',
-                ],
-            ],
         ];
-        $fields['Content'] = ['type' => 'text'];
-        $fields['Url'] = ['type' => 'text'];
-        $fields[ElasticaService::SUGGEST_FIELD_NAME] = [
-            'type' => 'completion',
-            'analyzer' => 'suggestion',
-        ];
+        $fields['Content'] = ['type' => 'string'];
+        $fields['Url'] = ['type' => 'string'];
     }
 
     /**
@@ -134,12 +125,11 @@ final class FilterIndexPageItemExtension extends SiteTreeExtension implements In
         $data['Title'] = $this->owner->Title;
         $data['Content'] = $this->owner->Content;
         $data['Url'] = $this->cleanUrl($this->owner->getAbsoluteLiveLink(false));
-        $data[ElasticaService::SUGGEST_FIELD_NAME] = $this->fillSuggest(['Title','Content'], $data);
     }
 
     public static function getIndexName(): string
     {
-        $name =  sprintf('content-%s-%s', Environment::getEnv('ELASTICSEARCH_INDEX'), self::INDEX_SUFFIX);
+        $name = sprintf('content-%s-%s', Environment::getEnv('ELASTICSEARCH_INDEX'), self::INDEX_SUFFIX);
 
         if (Environment::getEnv('ELASTICSEARCH_INDEX_CONTENT_PREFIX')) {
             $name = sprintf('%s-%s', Environment::getEnv('ELASTICSEARCH_INDEX_CONTENT_PREFIX'), $name);

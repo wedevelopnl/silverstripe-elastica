@@ -9,9 +9,8 @@ use Elastica\Document;
 use Elastica\Index;
 use Elastica\Query;
 use Elastica\ResultSet;
-use Elastica\Suggest;
-use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\ClassInfo;
+use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Versioned\Versioned;
@@ -26,8 +25,6 @@ final class ElasticaService
     use Extensible;
     use Injectable;
     use Configurable;
-
-    public const SUGGEST_FIELD_NAME = 'suggest';
 
     /** @config */
     private static int $number_of_shards = 1;
@@ -120,13 +117,6 @@ final class ElasticaService
                                 'replacement' => '',
                             ],
                         ],
-                        'analyzer' => [
-                            'suggestion' => [
-                                'tokenizer' => 'standard',
-                                'filter' => ['dutch_stop', 'lowercase', 'filename_stop', 'length'],
-                                'char_filter' => ['html', 'number_filter', 'file_filter'],
-                            ],
-                        ],
                     ],
                 ],
             ], true);
@@ -158,18 +148,19 @@ final class ElasticaService
     private function indexDocuments(string $indexer): array
     {
         $documents = [];
-        $indexedClasses = call_user_func(sprintf('%s::%s', $indexer, 'getExtendedClasses'));
-        ;
+        $indexedClasses = call_user_func(sprintf('%s::%s', $indexer, 'getExtendedClasses'));;
 
         foreach ($indexedClasses as $class) {
             echo "Indexing {$class}\n";
 
             /** @var IndexItemInterface $instance */
             $instance = $class::singleton();
+
             $mapping = $instance->getElasticaMapping();
+            $mapping->setType($this->index->getType($class));
 
             echo "Create mapping\n";
-            $mapping->send($this->index);
+            $mapping->send();
             echo "Done\n";
 
             echo "Create documents\n";
@@ -191,28 +182,6 @@ final class ElasticaService
     }
 
     /**
-     * @param array<string, mixed> $options
-     */
-    public function suggest(string $field, string $query, array $options): ResultSet
-    {
-        $suggest = new Suggest();
-
-        $phrase = new Suggest\Completion($field, self::SUGGEST_FIELD_NAME);
-        $phrase->setPrefix($query);
-
-        if (!empty($options['fuzzy'])) {
-            $phrase->setFuzzy($options['fuzzy']);
-        }
-
-        $phrase->setSize($options['size']);
-        $phrase->setParam('skip_duplicates', $options['skip_duplicates']);
-
-        $suggest->addSuggestion($phrase);
-
-        return $this->index->search($suggest);
-    }
-
-    /**
      * @return string[]
      */
     private function getIndexClasses(): array
@@ -229,7 +198,8 @@ final class ElasticaService
         return $this->index;
     }
 
-    protected function filterNotSearchable(&$documents) {
+    protected function filterNotSearchable(&$documents)
+    {
         $notSearchable = [];
 
         foreach ($documents as $index => $document) {
