@@ -64,7 +64,7 @@ final class ElasticaService
 
     public function add(IndexItemInterface $record): void
     {
-        $this->index->addDocument($record->getElasticaDocument());
+        $this->index->addDocuments([$record->getElasticaDocument()]);
     }
 
     public function delete(IndexItemInterface $record): void

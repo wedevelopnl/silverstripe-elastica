@@ -16,7 +16,7 @@ use TheWebmen\Elastica\Services\GeocodeService;
 final class GeoDistanceFilter extends Filter implements FilterInterface
 {
     /** @config */
-    private static string $singular_name = 'GeoDinstance';
+    private static string $singular_name = 'GeoDistance';
 
     /** @config */
     private static string $table_name = 'TheWebmen_Elastica_Filter_GeoDistanceFilter';
