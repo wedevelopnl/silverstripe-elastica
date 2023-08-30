@@ -44,7 +44,7 @@ final class FilterIndexPageItemExtension extends SiteTreeExtension implements In
         $this->updateChildren($this->owner);
     }
 
-    public function onAfterUnpublish(): void
+    public function onBeforeUnpublish(): void
     {
         $this->updateElementsIndex($this->owner);
         $this->updateChildren($this->owner);

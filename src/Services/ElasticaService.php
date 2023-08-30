@@ -69,7 +69,7 @@ final class ElasticaService
 
     public function delete(IndexItemInterface $record): void
     {
-        $this->index->deleteByQuery(new Query\Term(['_id' => $record->getElasticaId()]));
+        $this->index->deleteDocuments([$record->getElasticaDocument()]);
     }
 
     public function reindex(): void
