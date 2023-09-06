@@ -1,5 +1,5 @@
 {
-  "name": "wedevelop/silverstripe-elastica",
+  "name": "wedevelopnl/silverstripe-elastica",
   "description": "facet filters",
   "type": "silverstripe-vendormodule",
   "keywords": ["elastica", "elasticsearch", "facet", "filters"],
