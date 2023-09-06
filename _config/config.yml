@@ -8,24 +8,9 @@ SilverStripe\Core\Injector\Injector:
       -
         host: '`ELASTICSEARCH_HOST`'
         port: '`ELASTICSEARCH_PORT`'
-        proxy: 'proxy:8080'
 
   Geocoder\Provider\Cache\ProviderCache.cache:
     factory: SilverStripe\Core\Cache\CacheFactory
-  Geocoder\Provider\GoogleMaps\GoogleMaps.client:
-    class: GuzzleHttp\Client
-  Geocoder\Provider\GoogleMaps\GoogleMaps:
-    class: Geocoder\Provider\GoogleMaps\GoogleMaps
-    constructor:
-      0: '%$Geocoder\Provider\GoogleMaps\GoogleMaps.client'
-      1:
-      2: '`GOOGLE_GEOCODING_API_KEY`'
-  Geocoder\Provider\Cache\ProviderCache:
-    class: Geocoder\Provider\Cache\ProviderCache
-    constructor:
-      0: '%$Geocoder\Provider\GoogleMaps\GoogleMaps'
-      1: '%$Geocoder\Provider\Cache\ProviderCache.cache'
-      2: 86400
   Geocoder\Geocoder:
     class: Geocoder\StatefulGeocoder
     constructor:

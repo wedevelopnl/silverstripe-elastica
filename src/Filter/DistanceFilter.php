@@ -12,10 +12,10 @@ use Geocoder\Query\GeocodeQuery;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\FormField;
+use SilverStripe\Forms\GridField\GridField;
 use SilverStripe\Forms\GridField\GridField_ActionMenu;
 use SilverStripe\Forms\GridField\GridFieldAddExistingAutocompleter;
 use SilverStripe\Forms\GridField\GridFieldAddNewButton;
-use SilverStripe\Forms\GridField\GridFieldConfig;
 use SilverStripe\Forms\GridField\GridFieldDataColumns;
 use SilverStripe\Forms\GridField\GridFieldDeleteAction;
 use SilverStripe\Forms\GridField\GridFieldEditButton;
@@ -23,7 +23,7 @@ use Symbiote\GridFieldExtensions\GridFieldAddNewInlineButton;
 use Symbiote\GridFieldExtensions\GridFieldEditableColumns;
 use Symbiote\GridFieldExtensions\GridFieldOrderableRows;
 use WeDevelop\Elastica\Filter\DistanceFilter\Option;
-use WeDevelop\Elastica\Form\DistanceFilterField;
+use WeDevelop\Elastica\Form\DistanceField;
 
 class DistanceFilter extends Filter
 {
@@ -38,24 +38,28 @@ class DistanceFilter extends Filter
     public function getCMSFields(): FieldList
     {
         $this->beforeUpdateCMSFields(function (FieldList $fields) {
-            /** @var GridFieldConfig $config */
-            $config = $fields->dataFieldByName('Options')->getConfig();
+            $options = $fields->dataFieldByName('Options');
 
-            $config
-                ->removeComponentsByType([
-                    GridFieldAddNewButton::class,
-                    GridFieldAddExistingAutocompleter::class,
-                    GridFieldDataColumns::class,
-                    GridField_ActionMenu::class,
-                    GridFieldEditButton::class,
-                    GridFieldDeleteAction::class,
-                ])
-                ->addComponents(
-                    GridFieldEditableColumns::create(),
-                    GridFieldAddNewInlineButton::create(),
-                    GridFieldOrderableRows::create(),
-                    GridFieldDeleteAction::create()
-                );
+            if ($options instanceof GridField) {
+                $options
+                    ->getConfig()
+                    ->removeComponentsByType([
+                        GridFieldAddNewButton::class,
+                        GridFieldAddExistingAutocompleter::class,
+                        GridFieldDataColumns::class,
+                        GridField_ActionMenu::class,
+                        GridFieldEditButton::class,
+                        GridFieldDeleteAction::class,
+                    ])
+                    ->addComponents(
+                        GridFieldEditableColumns::create(),
+                        GridFieldAddNewInlineButton::create(),
+                        GridFieldOrderableRows::create(),
+                        GridFieldDeleteAction::create(),
+                    );
+
+                $options->setDescription('Distance units can be found <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/api-conventions.html#distance-units" target="_blank">here</a>.');
+            }
         });
 
         return parent::getCMSFields();
@@ -63,7 +67,7 @@ class DistanceFilter extends Filter
 
     public function createFormField(): FormField
     {
-        return DistanceFilterField::create($this->Name, $this->Name, $this->Name, $this->Options()->map('Value', 'Label')->toArray());
+        return DistanceField::create($this->Name, $this->Label, $this->Label, $this->Options()->map('Distance', 'Label')->toArray());
     }
 
     public function createQuery(): ?AbstractQuery

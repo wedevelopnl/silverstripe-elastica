@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace WeDevelop\Elastica\Extension;
 
-use App\ORM\SortOption;
 use SilverStripe\Core\Extension;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\GridField\GridField;
@@ -12,6 +11,7 @@ use SilverStripe\Forms\GridField\GridFieldConfig_RecordEditor;
 use Symbiote\GridFieldExtensions\GridFieldAddNewMultiClass;
 use Symbiote\GridFieldExtensions\GridFieldOrderableRows;
 use WeDevelop\Elastica\Filter\Filter;
+use WeDevelop\Elastica\ORM\SortOption;
 
 class FilterPageExtension extends Extension
 {

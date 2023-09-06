@@ -17,7 +17,7 @@ class FilterForm extends Form
     {
         $fields = FieldList::create();
 
-        if ($sorts) {
+        if (count($sorts) > 1) {
             $fields->push(DropdownField::create('Sort', 'Sort', $sorts));
         }
 

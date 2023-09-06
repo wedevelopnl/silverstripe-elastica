@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace WeDevelop\Elastica\ORM;
 
-use App\ORM\SortOption;
 use SilverStripe\ORM\DataObject;
 
 class SortOptionRule extends DataObject
 {
+    /** @config */
+    private static string $singular_name = 'Rule';
+
     /** @config */
     private static array $db = [
         'FieldName' => 'Varchar',

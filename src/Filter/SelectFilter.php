@@ -30,12 +30,15 @@ class SelectFilter extends Filter
         'Type' => 'Enum("Checkbox,Dropdown,Radio", "Checkbox")',
     ];
 
+    /** @config */
+    private static int $max_size = 100;
+
     public function createFormField(): FormField
     {
         return match ($this->Type) {
-            self::TYPE_DROPDOWN => DropdownField::create($this->Name, $this->Name),
-            self::TYPE_RADIO => OptionsetField::create($this->Name, $this->Name),
-            default => CheckboxSetField::create($this->Name, $this->Name),
+            self::TYPE_DROPDOWN => DropdownField::create($this->Name, $this->Label),
+            self::TYPE_RADIO => OptionsetField::create($this->Name, $this->Label),
+            default => CheckboxSetField::create($this->Name, $this->Label),
         };
     }
 
@@ -47,13 +50,13 @@ class SelectFilter extends Filter
         }
 
         if (count($values) === 1) {
-            return new Terms($this->Name, array_values($values));
+            return new Terms($this->FieldName, array_values($values));
         }
 
         $bool = new BoolQuery();
 
         foreach ($this->getFormField()->Value() as $value) {
-            $bool->addShould(new Terms($this->Name, [$value]));
+            $bool->addShould(new Terms($this->FieldName, [$value]));
         }
 
         return $bool;
@@ -65,17 +68,18 @@ class SelectFilter extends Filter
 
         return $list->alterQuery(function (Query $query) use ($filters) {
             $terms = new \Elastica\Aggregation\Terms($this->Name);
-            $terms->setField($this->Name);
-            $terms->setOrder('_term', 'asc');
+            $terms->setField($this->FieldName);
+            $terms->setSize($this->config()->get('max_size'));
+            $terms->setOrder('_key', 'asc');
 
-            $query->addAggregation(AggregationFactory::create($this, $filters, $terms));
+            $query->addAggregation(AggregationFactory::create($this, $filters, [$terms]));
         });
     }
 
     public function applyContext(ResultSet $context): void
     {
         $source = [];
-        foreach ($context->getAggregation($this->Name)[$this->Name]['buckets'] as $bucket) {
+        foreach ($context->getAggregation($this->Name)['filter'][$this->Name]['buckets'] as $bucket) {
             $source[$bucket['key']] = sprintf('%s (%s)', $bucket['key'], $bucket['doc_count']);
         }
 

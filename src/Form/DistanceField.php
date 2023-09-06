@@ -8,7 +8,7 @@ use SilverStripe\Forms\DropdownField;
 use SilverStripe\Forms\FormField;
 use SilverStripe\Forms\TextField;
 
-class DistanceFilterField extends FormField
+class DistanceField extends FormField
 {
     private TextField $addressField;
 

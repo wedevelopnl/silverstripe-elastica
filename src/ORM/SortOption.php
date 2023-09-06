@@ -2,9 +2,8 @@
 
 declare(strict_types=1);
 
-namespace App\ORM;
+namespace WeDevelop\Elastica\ORM;
 
-use App\Service\ElasticaService;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Forms\DropdownField;
@@ -18,10 +17,13 @@ use SilverStripe\View\Parsers\URLSegmentFilter;
 use Symbiote\GridFieldExtensions\GridFieldAddNewInlineButton;
 use Symbiote\GridFieldExtensions\GridFieldEditableColumns;
 use Symbiote\GridFieldExtensions\GridFieldOrderableRows;
-use WeDevelop\Elastica\ORM\SortOptionRule;
+use WeDevelop\Elastica\Extension\Readable;
 
 class SortOption extends DataObject
 {
+    /** @config */
+    private static string $singular_name = 'Option';
+
     /** @config */
     private static array $db = [
         'Name' => 'Varchar',
@@ -58,7 +60,7 @@ class SortOption extends DataObject
                                 $readable = Injector::inst()->get($this->Page()->getReadable());
                                 $elasticaFields = array_merge(
                                     ['_score' => '_score'],
-                                    $readable->getElasticaFields(),
+                                    Readable::available_fields($readable::class),
                                 );
 
                                 return DropdownField::create($column)
@@ -74,7 +76,7 @@ class SortOption extends DataObject
                         ],
                     ]))
                     ->addComponent(GridFieldAddNewInlineButton::create())
-                    ->addComponent(GridFieldDeleteAction::create()))
+                    ->addComponent(GridFieldDeleteAction::create())),
             ]);
         });
 

@@ -26,7 +26,7 @@ class SearchFilter extends Filter
 
     public function createFormField(): FormField
     {
-        return TextField::create($this->Name, $this->Name);
+        return TextField::create($this->Name, $this->Label);
     }
 
     public function createQuery(): ?AbstractQuery

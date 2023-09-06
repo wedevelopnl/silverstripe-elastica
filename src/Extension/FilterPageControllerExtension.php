@@ -19,7 +19,7 @@ class FilterPageControllerExtension extends Extension
     public function index(): ViewableData
     {
         $page = $this->getOwner()->data();
-        $filters = $page->Filters()->toArray();
+        $filters = $page->Filters()->filter('Enabled', true)->toArray();
         $sorts = $page->SortOptions()->map('URLSegment', 'Title')->toArray();
         $form = FilterForm::create($this->owner, 'FilterForm', $sorts, $filters);
         $list = SearchList::create($this->getOwner()->data()->getReadable());

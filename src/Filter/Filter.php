@@ -7,16 +7,18 @@ namespace WeDevelop\Elastica\Filter;
 use Elastica\Query\AbstractQuery;
 use Elastica\ResultSet;
 use SilverStripe\CMS\Model\SiteTree;
-use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\FormField;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\TagField\StringTagField;
+use WeDevelop\Elastica\Extension\Readable;
 use WeDevelop\Elastica\ORM\SearchList;
 
 /**
  * @property string $Name
  * @property string $FieldName
+ * @property string $Label
+ * @property int $Sort
  */
 class Filter extends DataObject
 {
@@ -28,8 +30,10 @@ class Filter extends DataObject
     /** @config */
     private static array $db = [
         'Name' => 'Varchar',
+        'Label' => 'Varchar',
         'FieldName' => 'Varchar',
         'Sort' => 'Int',
+        'Enabled' => 'Boolean',
     ];
 
     /** @config */
@@ -41,6 +45,8 @@ class Filter extends DataObject
     private static array $summary_fields = [
         'i18n_singular_name' => 'Type',
         'Name',
+        'Label',
+        'Enabled',
     ];
 
     /** @config */
@@ -57,9 +63,7 @@ class Filter extends DataObject
             $fields->removeByName(['PageID', 'Sort']);
 
             $fields->dataFieldByName('Name')->setDescription('Query parameter name');
-
-            $readable = Injector::inst()->get($this->Page()->getReadable());
-            $elasticaFields = $readable->getElasticaFields();
+            $elasticaFields = Readable::available_fields($this->Page()->getReadable());
 
             $fields->addFieldsToTab('Root.Main', [
                 StringTagField::create(
@@ -74,6 +78,14 @@ class Filter extends DataObject
         });
 
         return parent::getCMSFields();
+    }
+
+    public function onAfterWrite(): void
+    {
+        if (!$this->Sort) {
+            $this->Sort = self::get()->filter('PageID', $this->PageID)->max('Sort') + 1;
+            $this->write();
+        }
     }
 
     public function getFormField(): FormField

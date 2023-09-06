@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace WeDevelop\Elastica\Factory;
 
 use Elastica\Aggregation\AbstractAggregation;
+use Elastica\Aggregation\GlobalAggregation;
 use Elastica\Query\BoolQuery;
 use WeDevelop\Elastica\Filter\Filter;
 
 class AggregationFactory
 {
-    public static function create(Filter $filter, array $filters, AbstractAggregation $aggregation): AbstractAggregation
+    public static function create(Filter $filter, array $filters, array $aggs): AbstractAggregation
     {
         $bool = new BoolQuery();
 
@@ -27,7 +28,13 @@ class AggregationFactory
             $bool->addMust($query);
         });
 
-        return (new \Elastica\Aggregation\Filter($filter->Name, $bool))
+        $aggregation = new \Elastica\Aggregation\Filter('filter', $bool);
+
+        foreach ($aggs as $agg) {
+            $aggregation->addAggregation($agg);
+        }
+
+        return (new GlobalAggregation($filter->Name))
             ->addAggregation($aggregation);
     }
 }
