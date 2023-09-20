@@ -9,11 +9,11 @@ use Elastica\Query\AbstractQuery;
 use Elastica\Query\BoolQuery;
 use Elastica\Query\Terms;
 use Elastica\ResultSet;
-use SilverStripe\Forms\CheckboxSetField;
-use SilverStripe\Forms\DropdownField;
 use SilverStripe\Forms\FormField;
-use SilverStripe\Forms\OptionsetField;
 use WeDevelop\Elastica\Factory\AggregationFactory;
+use WeDevelop\Elastica\Form\SelectCheckboxSetField;
+use WeDevelop\Elastica\Form\SelectDropdownField;
+use WeDevelop\Elastica\Form\SelectOptionsetField;
 use WeDevelop\Elastica\ORM\SearchList;
 
 class SelectFilter extends Filter
@@ -36,9 +36,9 @@ class SelectFilter extends Filter
     public function createFormField(): FormField
     {
         return match ($this->Type) {
-            self::TYPE_DROPDOWN => DropdownField::create($this->Name, $this->Label),
-            self::TYPE_RADIO => OptionsetField::create($this->Name, $this->Label),
-            default => CheckboxSetField::create($this->Name, $this->Label),
+            self::TYPE_DROPDOWN => SelectDropdownField::create($this->Name, $this->Label),
+            self::TYPE_RADIO => SelectOptionsetField::create($this->Name, $this->Label),
+            default => SelectCheckboxSetField::create($this->Name, $this->Label),
         };
     }
 
@@ -80,7 +80,11 @@ class SelectFilter extends Filter
     {
         $source = [];
         foreach ($context->getAggregation($this->Name)['filter'][$this->Name]['buckets'] as $bucket) {
-            $source[$bucket['key']] = sprintf('%s (%s)', $bucket['key'], $bucket['doc_count']);
+            $label = sprintf('%s<span>%s</span>', $bucket['key'], $bucket['doc_count']);
+            
+            $this->extend('updateLabel', $label, $this, $bucket['key'], $bucket['doc_count']);
+            
+            $source[$bucket['key']] = $label;
         }
 
         $this->getFormField()->setSource($source);
