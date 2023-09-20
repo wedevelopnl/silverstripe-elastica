@@ -81,7 +81,7 @@ class SelectFilter extends Filter
     {
         $source = [];
         foreach ($context->getAggregation($this->Name)['filter'][$this->Name]['buckets'] as $bucket) {
-            $label = HTMLValue::create(sprintf('%s<span>%s</span>', $bucket['key'], $bucket['doc_count']));
+            $label = HTMLValue::create(sprintf('%s<span>(%s)</span>', $bucket['key'], $bucket['doc_count']));
             
             $this->extend('updateLabel', $label, $this, $bucket['key'], $bucket['doc_count']);
             
