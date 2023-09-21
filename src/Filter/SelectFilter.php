@@ -50,13 +50,15 @@ class SelectFilter extends Filter
             return null;
         }
 
+        $values = is_array($values) ? $values : [$values];
+
         if (count($values) === 1) {
             return new Terms($this->FieldName, array_values($values));
         }
 
         $bool = new BoolQuery();
 
-        foreach ($this->getFormField()->Value() as $value) {
+        foreach ($values as $value) {
             $bool->addShould(new Terms($this->FieldName, [$value]));
         }
 
