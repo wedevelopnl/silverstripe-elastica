@@ -181,12 +181,14 @@ class SearchList extends ViewableData implements SS_List, Filterable, Sortable, 
 
     public function first()
     {
-        // TODO: Implement first() method.
+        $array = $this->toArray();
+        return reset($array);
     }
 
     public function last()
     {
-        // TODO: Implement last() method.
+        $array = $this->toArray();
+        return reset($end);
     }
 
     public function map($keyfield = 'ID', $titlefield = 'Title')
