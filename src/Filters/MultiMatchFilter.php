@@ -54,8 +54,8 @@ final class MultiMatchFilter extends Filter implements FilterInterface
             return null;
         }
 
-        $query = new \Elastica\Query\MultiMatch();
-        $query->setQuery($value);
+        $query = new \Elastica\Query\QueryString();
+        $query->setQuery("*{$value}*");
         $query->setFields($this->getFields());
 
         return $query;
