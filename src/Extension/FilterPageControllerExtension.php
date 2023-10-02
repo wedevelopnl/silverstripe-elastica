@@ -22,6 +22,11 @@ class FilterPageControllerExtension extends Extension
         $filters = $page->Filters()->filter('Enabled', true)->toArray();
         $sorts = $page->SortOptions()->map('URLSegment', 'Title')->toArray();
         $form = FilterForm::create($this->owner, 'FilterForm', $sorts, $filters);
+
+        if (method_exists($this->getOwner(), 'updateFilterForm')) {
+            $this->getOwner()->updateFilterForm($form);
+        }
+
         $list = SearchList::create($this->getOwner()->data()->getReadable());
 
         foreach ($filters as $filter) {
@@ -40,10 +45,6 @@ class FilterPageControllerExtension extends Extension
 
         foreach ($filters as $filter) {
             $filter->applyContext($resultSet);
-        }
-
-        if (method_exists($this->getOwner(), 'updateFilterForm')) {
-            $this->getOwner()->updateFilterForm($form);
         }
 
         if (method_exists($this->getOwner(), 'updateList')) {
