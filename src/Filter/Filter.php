@@ -91,7 +91,9 @@ class Filter extends DataObject
     public function getFormField(): FormField
     {
         if (!$this->field) {
-            $this->field = $this->createFormField();
+            $field = $this->createFormField();
+            $this->extend('updateFormField', $field);
+            $this->field = $field;
         }
 
         return $this->field;
