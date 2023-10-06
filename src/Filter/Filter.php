@@ -125,6 +125,6 @@ class Filter extends DataObject
 
     public function canCreate($member = null, $context = []): bool
     {
-        return $this->baseClass() !== $this->getClassName();
+        return parent::canCreate($member, $context) && $this->baseClass() !== $this->getClassName();
     }
 }
