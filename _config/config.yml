@@ -5,7 +5,7 @@ SilverStripe\Core\Injector\Injector:
   Elastica\Client:
     class: Elastica\Client
     constructor:
-      -
+      config:
         host: '`ELASTICSEARCH_HOST`'
         port: '`ELASTICSEARCH_PORT`'
 
@@ -16,3 +16,17 @@ SilverStripe\Core\Injector\Injector:
     constructor:
       0: '%$Geocoder\Provider\Cache\ProviderCache'
 
+---
+Name: wedevelop-elastica-auth
+Only:
+  envvarset:
+    - ELASTICSEARCH_USERNAME
+    - ELASTICSEARCH_PASSWORD
+---
+SilverStripe\Core\Injector\Injector:
+  Elastica\Client:
+    class: Elastica\Client
+    constructor:
+      config:
+        username: '`ELASTICSEARCH_USERNAME`'
+        password: '`ELASTICSEARCH_PASSWORD`'
