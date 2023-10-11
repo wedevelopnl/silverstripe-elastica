@@ -30,3 +30,15 @@ SilverStripe\Core\Injector\Injector:
       config:
         username: '`ELASTICSEARCH_USERNAME`'
         password: '`ELASTICSEARCH_PASSWORD`'
+---
+Name: wedevelop-elastica-transport
+Only:
+  envvarset:
+    - ELASTICSEARCH_TRANSPORT
+---
+SilverStripe\Core\Injector\Injector:
+  Elastica\Client:
+    class: Elastica\Client
+    constructor:
+      config:
+        transport: '`ELASTICSEARCH_TRANSPORT`'
