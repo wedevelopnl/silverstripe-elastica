@@ -75,7 +75,7 @@ class SelectFilter extends Filter
             $terms->setSize($this->config()->get('max_size'));
             $terms->setOrder('_key', 'asc');
 
-            $query->addAggregation(AggregationFactory::create($this, $filters, [$terms]));
+            $query->addAggregation(AggregationFactory::singleton()->create($this, $filters, [$terms]));
         });
     }
 

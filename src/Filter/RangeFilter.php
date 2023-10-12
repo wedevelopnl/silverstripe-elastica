@@ -128,7 +128,7 @@ class RangeFilter extends Filter
                 $range = new \Elastica\Aggregation\Range($this->Name);
                 $range->setField($this->FieldName);
 
-                $query->addAggregation(AggregationFactory::create($this, $filters, [$range]));
+                $query->addAggregation(AggregationFactory::singleton()->create($this, $filters, [$range]));
             });
         }
 
@@ -138,7 +138,7 @@ class RangeFilter extends Filter
             $max = new \Elastica\Aggregation\Max('max');
             $max->setField($this->FieldName);
 
-            $query->addAggregation(AggregationFactory::create($this, $filters, [$min, $max]));
+            $query->addAggregation(AggregationFactory::singleton()->create($this, $filters, [$min, $max]));
         });
     }
 

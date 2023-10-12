@@ -7,11 +7,16 @@ namespace WeDevelop\Elastica\Factory;
 use Elastica\Aggregation\AbstractAggregation;
 use Elastica\Aggregation\GlobalAggregation;
 use Elastica\Query\BoolQuery;
+use SilverStripe\Core\Extensible;
+use SilverStripe\Core\Injector\Injectable;
 use WeDevelop\Elastica\Filter\Filter;
 
 class AggregationFactory
 {
-    public static function create(Filter $filter, array $filters, array $aggs): AbstractAggregation
+    use Injectable;
+    use Extensible;
+
+    public function create(Filter $filter, array $filters, array $aggs): AbstractAggregation
     {
         $bool = new BoolQuery();
 
@@ -33,6 +38,8 @@ class AggregationFactory
         foreach ($aggs as $agg) {
             $aggregation->addAggregation($agg);
         }
+
+        $this->extend('updateAggregation', $aggregation);
 
         return (new GlobalAggregation($filter->Name))
             ->addAggregation($aggregation);

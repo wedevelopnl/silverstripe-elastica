@@ -41,14 +41,14 @@ class FilterPageControllerExtension extends Extension
             });
         }
 
+        if (method_exists($this->getOwner(), 'updateList')) {
+            $this->getOwner()->updateList($list);
+        }
+
         $resultSet = $list->getResultSet();
 
         foreach ($filters as $filter) {
             $filter->applyContext($resultSet);
-        }
-
-        if (method_exists($this->getOwner(), 'updateList')) {
-            $this->getOwner()->updateList($list);
         }
 
         $paginatedList = PaginatedList::create($list, $this->getOwner()->getRequest())
