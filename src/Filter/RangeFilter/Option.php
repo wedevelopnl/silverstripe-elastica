@@ -17,7 +17,8 @@ class Option extends DataObject
 
     /** @config */
     private static array $db = [
-        'Value' => 'Varchar',
+        'From' => 'Varchar',
+        'To' => 'Varchar',
         'Label' => 'Varchar',
         'Sort' => 'Int',
     ];
@@ -29,7 +30,8 @@ class Option extends DataObject
 
     /** @config */
     private static array $summary_fields = [
-        'Value',
+        'From',
+        'To',
         'Label',
     ];
 }

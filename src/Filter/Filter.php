@@ -9,6 +9,7 @@ use Elastica\ResultSet;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\FormField;
+use SilverStripe\Forms\ReadonlyField;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\TagField\StringTagField;
 use WeDevelop\Elastica\Extension\Readable;
@@ -43,7 +44,7 @@ class Filter extends DataObject
 
     /** @config */
     private static array $summary_fields = [
-        'i18n_singular_name' => 'Type',
+        'i18n_singular_name' => 'Filter',
         'Name',
         'Label',
         'Enabled',
@@ -66,6 +67,7 @@ class Filter extends DataObject
             $elasticaFields = Readable::available_fields($this->Page()->getReadable());
 
             $fields->addFieldsToTab('Root.Main', [
+                ReadonlyField::create('Filter', 'Filter', $this->i18n_singular_name()),
                 StringTagField::create(
                     'FieldName',
                     'FieldName',

@@ -1,0 +1,5 @@
+nl:
+  WeDevelop\Elastica\Filter\SelectFilter:
+    EMPTY_STRING: '- Kies een optie -'
+  WeDevelop\Elastica\Filter\RangeFilter:
+    EMPTY_STRING: '- Kies een optie -'

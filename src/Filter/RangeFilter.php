@@ -67,7 +67,7 @@ class RangeFilter extends Filter
                         GridFieldEditableColumns::create(),
                         GridFieldAddNewInlineButton::create(),
                         GridFieldOrderableRows::create(),
-                        GridFieldDeleteAction::create()
+                        GridFieldDeleteAction::create(),
                     );
             }
         });
@@ -80,7 +80,8 @@ class RangeFilter extends Filter
         return match ($this->Type) {
             self::TYPE_INPUT => RangeInputField::create($this->Name, $this->Label),
             self::TYPE_CHECKBOX => CheckboxSetField::create($this->Name, $this->Label),
-            self::TYPE_DROPDOWN => DropdownField::create($this->Name, $this->Label),
+            self::TYPE_DROPDOWN => DropdownField::create($this->Name, $this->Label)
+                ->setEmptyString(_t(__CLASS__ . '.EMPTY_STRING', '- Choose an option -')),
             self::TYPE_RADIO => OptionsetField::create($this->Name, $this->Label),
             default => RangeSliderField::create($this->Name, $this->Label),
         };
@@ -88,24 +89,19 @@ class RangeFilter extends Filter
 
     public function createQuery(): ?AbstractQuery
     {
-        $values = $this->getFormField()->Value();
-        if (empty($values['From']) && empty($values['To'])) {
-            return null;
+        if ($this->hasOptions()) {
+            return $this->createOptionsQuery();
         }
 
-        $args = [];
-        if (!empty($values['From'])) {
-            $args['gte'] = $values['From'];
-        }
-        if (!empty($values['To'])) {
-            $args['lte'] = $values['To'];
-        }
-
-        return new Query\Range($this->FieldName, $args);
+        return $this->createRangeQuery();
     }
 
     public function applyContext(ResultSet $context): void
     {
+        if (!array_key_exists($this->Name, $context->getAggregations())) {
+            return;
+        }
+
         if ($this->hasOptions()) {
             $source = [];
             foreach ($context->getAggregation($this->Name)['filter'][$this->Name]['buckets'] as $bucket) {
@@ -128,7 +124,13 @@ class RangeFilter extends Filter
                 $range = new \Elastica\Aggregation\Range($this->Name);
                 $range->setField($this->FieldName);
 
-                $query->addAggregation(AggregationFactory::singleton()->create($this, $filters, [$range]));
+                foreach ($this->Options() as $option) {
+                    $range->addRange($option->From, $option->To, $option->Label);
+                }
+
+                if ($range->hasParam('ranges')) {
+                    $query->addAggregation(AggregationFactory::singleton()->create($this, $filters, [$range]));
+                }
             });
         }
 
@@ -145,5 +147,40 @@ class RangeFilter extends Filter
     private function hasOptions(): bool
     {
         return in_array($this->Type, [self::TYPE_CHECKBOX, self::TYPE_DROPDOWN, self::TYPE_RADIO], true);
+    }
+
+    private function createOptionsQuery(): ?AbstractQuery
+    {
+        $values = $this->getFormField()->Value();
+        if (!$values) {
+            return null;
+        }
+
+        $bool = new Query\BoolQuery();
+
+        foreach ($this->Options()->filter('Label', array_keys($values)) as $option) {
+            $bool->addShould(new Query\Range($this->FieldName, ['gte' => $option->From, 'lt' => $option->To]));
+        }
+
+        return $bool;
+    }
+
+    private function createRangeQuery(): ?AbstractQuery
+    {
+        $values = $this->getFormField()->Value();
+
+        if (empty($values['From']) && empty($values['To'])) {
+            return null;
+        }
+
+        $args = [];
+        if (!empty($values['From'])) {
+            $args['gte'] = $values['From'];
+        }
+        if (!empty($values['To'])) {
+            $args['lte'] = $values['To'];
+        }
+
+        return new Query\Range($this->FieldName, $args);
     }
 }
