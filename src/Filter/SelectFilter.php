@@ -37,8 +37,7 @@ class SelectFilter extends Filter
     public function createFormField(): FormField
     {
         return match ($this->Type) {
-            self::TYPE_DROPDOWN => SelectDropdownField::create($this->Name, $this->Label)
-                ->setEmptyString(_t(__CLASS__ . '.EMPTY_STRING', '- Choose an option -')),
+            self::TYPE_DROPDOWN => SelectDropdownField::create($this->Name, $this->Label),
             self::TYPE_RADIO => SelectOptionsetField::create($this->Name, $this->Label),
             default => SelectCheckboxSetField::create($this->Name, $this->Label),
         };

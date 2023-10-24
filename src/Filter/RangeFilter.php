@@ -7,8 +7,6 @@ namespace WeDevelop\Elastica\Filter;
 use Elastica\Query;
 use Elastica\Query\AbstractQuery;
 use Elastica\ResultSet;
-use SilverStripe\Forms\CheckboxSetField;
-use SilverStripe\Forms\DropdownField;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\FormField;
 use SilverStripe\Forms\GridField\GridField;
@@ -18,13 +16,15 @@ use SilverStripe\Forms\GridField\GridFieldAddNewButton;
 use SilverStripe\Forms\GridField\GridFieldDataColumns;
 use SilverStripe\Forms\GridField\GridFieldDeleteAction;
 use SilverStripe\Forms\GridField\GridFieldEditButton;
-use SilverStripe\Forms\OptionsetField;
 use Symbiote\GridFieldExtensions\GridFieldAddNewInlineButton;
 use Symbiote\GridFieldExtensions\GridFieldEditableColumns;
 use Symbiote\GridFieldExtensions\GridFieldOrderableRows;
 use WeDevelop\Elastica\Factory\AggregationFactory;
 use WeDevelop\Elastica\Filter\RangeFilter\Option;
+use WeDevelop\Elastica\Form\RangeCheckboxSetField;
+use WeDevelop\Elastica\Form\RangeDropdownField;
 use WeDevelop\Elastica\Form\RangeInputField;
+use WeDevelop\Elastica\Form\RangeOptionsetField;
 use WeDevelop\Elastica\Form\RangeSliderField;
 use WeDevelop\Elastica\ORM\SearchList;
 
@@ -79,10 +79,9 @@ class RangeFilter extends Filter
     {
         return match ($this->Type) {
             self::TYPE_INPUT => RangeInputField::create($this->Name, $this->Label),
-            self::TYPE_CHECKBOX => CheckboxSetField::create($this->Name, $this->Label),
-            self::TYPE_DROPDOWN => DropdownField::create($this->Name, $this->Label)
-                ->setEmptyString(_t(__CLASS__ . '.EMPTY_STRING', '- Choose an option -')),
-            self::TYPE_RADIO => OptionsetField::create($this->Name, $this->Label),
+            self::TYPE_CHECKBOX => RangeCheckboxSetField::create($this->Name, $this->Label),
+            self::TYPE_DROPDOWN => RangeDropdownField::create($this->Name, $this->Label),
+            self::TYPE_RADIO => RangeOptionsetField::create($this->Name, $this->Label),
             default => RangeSliderField::create($this->Name, $this->Label),
         };
     }
