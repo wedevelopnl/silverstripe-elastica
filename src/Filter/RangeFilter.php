@@ -16,6 +16,7 @@ use SilverStripe\Forms\GridField\GridFieldAddNewButton;
 use SilverStripe\Forms\GridField\GridFieldDataColumns;
 use SilverStripe\Forms\GridField\GridFieldDeleteAction;
 use SilverStripe\Forms\GridField\GridFieldEditButton;
+use SilverStripe\View\Parsers\HTMLValue;
 use Symbiote\GridFieldExtensions\GridFieldAddNewInlineButton;
 use Symbiote\GridFieldExtensions\GridFieldEditableColumns;
 use Symbiote\GridFieldExtensions\GridFieldOrderableRows;
@@ -104,7 +105,15 @@ class RangeFilter extends Filter
         if ($this->hasOptions()) {
             $source = [];
             foreach ($context->getAggregation($this->Name)['filter'][$this->Name]['buckets'] as $bucket) {
-                $source[$bucket['key']] = sprintf('%s (%s)', $bucket['key'], $bucket['doc_count']);
+                if ($this->Type === self::TYPE_DROPDOWN) {
+                    $label = sprintf('%s (%s)', $bucket['key'], $bucket['doc_count']);
+                } else {
+                    $label = HTMLValue::create(sprintf('%s<span>(%s)</span>', $bucket['key'], $bucket['doc_count']));
+                }
+
+                $this->extend('updateLabel', $label, $this, $bucket['key'], $bucket['doc_count']);
+
+                $source[$bucket['key']] = $label;
             }
 
             $this->getFormField()->setSource($source);
