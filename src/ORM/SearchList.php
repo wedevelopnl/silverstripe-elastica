@@ -56,7 +56,7 @@ class SearchList extends ViewableData implements SS_List, Filterable, Sortable, 
 
     public function count(): int
     {
-        return $this->getResultSet()->getTotalHits();
+        return $this->getResultSet()->count();
     }
 
     public function getIterator(): Iterator

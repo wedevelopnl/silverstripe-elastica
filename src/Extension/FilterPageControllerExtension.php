@@ -56,6 +56,7 @@ class FilterPageControllerExtension extends Extension
         }
 
         $paginatedList = PaginatedList::create($list, $this->getOwner()->getRequest())
+            ->setTotalItems($resultSet->getTotalHits())
             ->setLimitItems(false);
 
         if (method_exists($this->getOwner(), 'updatePaginatedList')) {
