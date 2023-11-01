@@ -64,8 +64,6 @@ class SearchList extends ViewableData implements SS_List, Filterable, Sortable, 
         foreach ($this->getResultSet()->getResults() as $result) {
             yield $this->createObject($result->getData());
         }
-
-        $this->resultSet = null;
     }
 
     public function limit(?int $length, int $offset = 0): static

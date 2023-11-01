@@ -45,6 +45,10 @@ class FilterPageControllerExtension extends Extension
             $this->getOwner()->updateList($list);
         }
 
+        $list = $list->limit(
+            $this->getOwner()->config()->get('items_per_page'),
+            filter_var($this->getOwner()->getRequest()->getVar('start'), FILTER_VALIDATE_INT) ?: 0,
+        );
         $resultSet = $list->getResultSet();
 
         foreach ($filters as $filter) {
@@ -52,7 +56,7 @@ class FilterPageControllerExtension extends Extension
         }
 
         $paginatedList = PaginatedList::create($list, $this->getOwner()->getRequest())
-            ->setPageLength($this->getOwner()->config()->get('items_per_page'));
+            ->setLimitItems(false);
 
         if (method_exists($this->getOwner(), 'updatePaginatedList')) {
             $this->getOwner()->updatePaginatedList($paginatedList);
