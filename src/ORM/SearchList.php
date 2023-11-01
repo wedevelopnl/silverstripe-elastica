@@ -90,7 +90,6 @@ class SearchList extends ViewableData implements SS_List, Filterable, Sortable, 
             $search = new Search(Injector::inst()->get(Client::class));
             $search->addIndices(Config::inst()->get($this->dataClass, 'elastica_indices'));
             $search->setQuery($this->query);
-            $search->search();
 
             $this->resultSet = $search->search();
         }
