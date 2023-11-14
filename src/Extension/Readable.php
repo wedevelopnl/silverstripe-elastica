@@ -11,18 +11,21 @@ use SilverStripe\Core\Injector\Injector;
 
 class Readable extends Extension
 {
-    /** @config */
-    private static array $elastica_indices = [];
+    public function getElasticaIndices(): array
+    {
+        return $this->getOwner()->getElasticaIndices() ?? [];
+    }
 
     public static function available_fields(string $readable): array
     {
         /** @var Client $client */
         $client = Injector::inst()->get(Client::class);
-        $indices = Config::inst()->get($readable, 'elastica_indices');
+        /** @var Readable $readable */
+        $readable = Injector::inst()->get($readable);
 
         $fields = [];
 
-        foreach ($indices as $index) {
+        foreach ($readable->getElasticaIndices() as $index) {
             $properties = $client->getIndex($index)->getMapping()['properties'] ?? null;
 
             if (!$properties) {

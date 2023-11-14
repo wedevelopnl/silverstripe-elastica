@@ -17,6 +17,7 @@ use SilverStripe\ORM\Limitable;
 use SilverStripe\ORM\Sortable;
 use SilverStripe\ORM\SS_List;
 use SilverStripe\View\ViewableData;
+use WeDevelop\Elastica\Extension\Readable;
 
 class SearchList extends ViewableData implements SS_List, Filterable, Sortable, Limitable
 {
@@ -86,7 +87,9 @@ class SearchList extends ViewableData implements SS_List, Filterable, Sortable, 
     {
         if (!$this->resultSet) {
             $search = new Search(Injector::inst()->get(Client::class));
-            $search->addIndices(Config::inst()->get($this->dataClass, 'elastica_indices'));
+            /** @var Readable $readable */
+            $readable = Injector::inst()->get($this->dataClass);
+            $search->addIndices($readable->getElasticaIndices());
             $search->setQuery($this->query);
 
             $this->resultSet = $search->search();
