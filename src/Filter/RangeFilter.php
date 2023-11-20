@@ -105,14 +105,15 @@ class RangeFilter extends Filter
         if ($this->hasOptions()) {
             $source = [];
             foreach ($context->getAggregation($this->Name)['filter'][$this->Name]['buckets'] as $bucket) {
+                $key = htmlspecialchars($bucket['key']);
+
                 if ($this->Type === self::TYPE_DROPDOWN) {
-                    $label = sprintf('%s (%s)', $bucket['key'], $bucket['doc_count']);
+                    $label = sprintf('%s (%s)', $key, $bucket['doc_count']);
                 } else {
-                    $label = HTMLValue::create(sprintf('%s<span>(%s)</span>', $bucket['key'], $bucket['doc_count']));
+                    $label = HTMLValue::create(sprintf('%s<span>(%s)</span>', $key, $bucket['doc_count']));
                 }
 
-                $this->extend('updateLabel', $label, $this, $bucket['key'], $bucket['doc_count']);
-
+                $this->extend('updateLabel', $label, $key, $bucket['doc_count']);
                 $source[$bucket['key']] = $label;
             }
 
