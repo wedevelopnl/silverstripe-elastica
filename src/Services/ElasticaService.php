@@ -53,7 +53,7 @@ final class ElasticaService
         $this->extend('updateIndexName', $indexName);
 
         if (ClassInfo::exists(FluentState::class)) {
-            $locale = strtolower(FluentState::singleton()->getLocale());
+            $locale = strtolower(FluentState::singleton()->getLocale() ?? '');
 
             if (!str_contains($indexName, $locale)) {
                 $indexName .= '-' . strtolower($locale);
