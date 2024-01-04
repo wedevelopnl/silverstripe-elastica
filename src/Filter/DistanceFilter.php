@@ -19,6 +19,7 @@ use SilverStripe\Forms\GridField\GridFieldAddNewButton;
 use SilverStripe\Forms\GridField\GridFieldDataColumns;
 use SilverStripe\Forms\GridField\GridFieldDeleteAction;
 use SilverStripe\Forms\GridField\GridFieldEditButton;
+use SilverStripe\i18n\i18n;
 use Symbiote\GridFieldExtensions\GridFieldAddNewInlineButton;
 use Symbiote\GridFieldExtensions\GridFieldEditableColumns;
 use Symbiote\GridFieldExtensions\GridFieldOrderableRows;
@@ -81,7 +82,7 @@ class DistanceFilter extends Filter
         try {
             $location = $this->getLocation($value['Address']);
         } catch (CollectionIsEmpty) {
-            $this->field->getAddressField()->setMessage('Address not found');
+            $this->field->getAddressField()->setMessage(_t(self::class . '.NOT_FOUND', 'Address not found'));
 
             return null;
         }
@@ -97,12 +98,22 @@ class DistanceFilter extends Filter
     {
         /** @var Geocoder $geocoder */
         $geocoder = Injector::inst()->get(Geocoder::class);
-        $result = $geocoder->geocodeQuery(GeocodeQuery::create($address));
+        $query = GeocodeQuery::create($address)->withLocale($this->getLocale() ?: null);
+        $result = $geocoder->geocodeQuery($query);
         $coordinates = $result->first()->getCoordinates();
 
         return [
             'lat' => $coordinates->getLatitude(),
             'lon' => $coordinates->getLongitude(),
         ];
+    }
+
+    private function getLocale(): ?string
+    {
+        $locale = i18n::getData()->langFromLocale(i18n::get_locale());
+
+        $this->extend('updateLocale', $locale);
+
+        return $locale;
     }
 }

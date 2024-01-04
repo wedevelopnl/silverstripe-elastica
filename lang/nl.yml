@@ -3,3 +3,5 @@ nl:
     EMPTY_STRING: '- Kies een optie -'
   WeDevelop\Elastica\Form\RangeDropdownField:
     EMPTY_STRING: '- Kies een optie -'
+  WeDevelop\Elastica\Filter\DistanceFilter:
+    NOT_FOUND: 'Adres niet gevonden'
