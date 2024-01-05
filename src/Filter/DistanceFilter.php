@@ -96,6 +96,8 @@ class DistanceFilter extends Filter
 
     private function getLocation(string $address): array
     {
+        $this->extend('updateAddress', $address);
+
         /** @var Geocoder $geocoder */
         $geocoder = Injector::inst()->get(Geocoder::class);
         $query = GeocodeQuery::create($address)->withLocale($this->getLocale() ?: null);
