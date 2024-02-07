@@ -7,6 +7,7 @@ namespace TheWebmen\Elastica\Services;
 use Psr\SimpleCache\CacheInterface;
 use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Core\Injector\Injector;
+use SilverStripe\i18n\i18n;
 
 final class GeocodeService
 {
@@ -47,11 +48,13 @@ final class GeocodeService
             return $this->cache->get($key);
         }
 
+        $language = i18n::getData()->langFromLocale(i18n::get_locale());
         $data = file_get_contents(sprintf(
-            '%sgeocode/json?key=%s&address=%s',
+            '%sgeocode/json?key=%s&address=%s&language=%s',
             self::BASE_URI,
             $this->key,
-            urlencode($query),
+            urlencode(sprintf('%s, %s', $query, $language)),
+            $language,
         ));
 
         $data = json_decode($data, true);
