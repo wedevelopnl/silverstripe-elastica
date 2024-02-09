@@ -50,7 +50,7 @@ final class GeocodeService
 
         $language = i18n::getData()->langFromLocale(i18n::get_locale());
         $data = file_get_contents(sprintf(
-            '%sgeocode/json?key=%s&address=%s&language=%s',
+            '%sgeocode/json?key=%s&address=%s&components=country:%s',
             self::BASE_URI,
             $this->key,
             urlencode(sprintf('%s, %s', $query, $language)),
