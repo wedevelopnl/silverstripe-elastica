@@ -98,7 +98,12 @@ class DistanceFilter extends Filter
     {
         /** @var Geocoder $geocoder */
         $geocoder = Injector::inst()->get(Geocoder::class);
-        $query = GeocodeQuery::create($address)->withLocale($this->getLocale() ?: null);
+        $query = GeocodeQuery::create($address);
+        
+        if ($this->getLocale()) {
+            $query = $query->withLocale($this->getLocale())
+                ->withData('components', ['country' => $this->getLocale()]);
+        }
 
         $this->extend('updateGeocodeQuery', $query);
         
