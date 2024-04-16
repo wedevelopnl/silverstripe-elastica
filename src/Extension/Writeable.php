@@ -4,10 +4,48 @@ declare(strict_types=1);
 
 namespace WeDevelop\Elastica\Extension;
 
-use SilverStripe\ORM\DataExtension;
+use Elastica\Document;
+use Elastica\Index;
+use Elastica\Mapping;
+use SilverStripe\Core\Extension;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\ORM\SS_List;
+use SilverStripe\Versioned\Versioned;
 
-class Writeable extends DataExtension
+class Writeable extends Extension
 {
-    /** @config */
-    private static ?string $elastica_index = null;
+    public function getElasticaIndex(): Index
+    {
+        return $this->getOwner()->getElasticaIndex();
+    }
+
+    public function getElasticaMapping(): Mapping
+    {
+        return $this->getOwner()->getElasticaMapping();
+    }
+
+    public function getElasticaList(): SS_List
+    {
+        return $this->getOwner()->getElasticaList();
+    }
+
+    public function getElasticaId(): string
+    {
+        return sprintf('%s_%s', $this->getOwner()->ClassName, $this->getOwner()->ID);
+    }
+
+    public function getElasticaDocument(): Document
+    {
+        return $this->getOwner()->getElasticaDocument();
+    }
+
+//    public function onAfterWrite(): void
+//    {
+//        die('onAfterWrite');
+//    }
+
+    public function onAfterUnpublish(): void
+    {
+        $this->getElasticaIndex()->deleteById($this->getElasticaDocument()->getId());
+    }
 }
