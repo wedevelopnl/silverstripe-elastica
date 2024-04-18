@@ -41,14 +41,15 @@ class FilterPageControllerExtension extends Extension
             });
         }
 
-        if (method_exists($this->getOwner(), 'updateList')) {
-            $this->getOwner()->updateList($list);
-        }
-
         $list = $list->limit(
             $this->getOwner()->config()->get('items_per_page'),
             filter_var($this->getOwner()->getRequest()->getVar('start'), FILTER_VALIDATE_INT) ?: 0,
         );
+
+        if (method_exists($this->getOwner(), 'updateList')) {
+            $this->getOwner()->updateList($list);
+        }
+
         $resultSet = $list->getResultSet();
 
         foreach ($filters as $filter) {

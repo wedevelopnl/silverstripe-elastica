@@ -8,11 +8,9 @@ use Elastica\Document;
 use Elastica\Index;
 use Elastica\Mapping;
 use SilverStripe\Core\Extension;
-use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\SS_List;
-use SilverStripe\Versioned\Versioned;
 
-class Writeable extends Extension
+class Writable extends Extension
 {
     public function getElasticaIndex(): Index
     {
@@ -39,10 +37,10 @@ class Writeable extends Extension
         return $this->getOwner()->getElasticaDocument();
     }
 
-//    public function onAfterWrite(): void
-//    {
-//        die('onAfterWrite');
-//    }
+    public function onAfterPublish(): void
+    {
+        $this->getElasticaIndex()->addDocument($this->getElasticaDocument());
+    }
 
     public function onAfterUnpublish(): void
     {

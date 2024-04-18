@@ -20,7 +20,7 @@ use SilverStripe\Dev\BuildTask;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Versioned\Versioned;
 use SilverStripe\View\ViewableData;
-use WeDevelop\Elastica\Extension\Writeable;
+use WeDevelop\Elastica\Extension\Writable;
 use WeDevelop\Elastica\Filter\Filter;
 
 final class ReindexTask extends BuildTask
@@ -34,7 +34,7 @@ final class ReindexTask extends BuildTask
         $classes = array_filter($classes, function ($class) {
             $extensions = Config::forClass($class)->get('extensions', Config::UNINHERITED) ?? [];
 
-            return in_array(Writeable::class, $extensions);
+            return in_array(Writable::class, $extensions);
         });
 
         printf('Found %d writables%s', count($classes), PHP_EOL);
@@ -43,7 +43,7 @@ final class ReindexTask extends BuildTask
             printf('Processing writable: %s%s', $class, PHP_EOL);
 
             try {
-                /** @var DataObject|Writeable $writable */
+                /** @var DataObject|Writable $writable */
                 $writable = singleton($class);
                 $index = $writable->getElasticaIndex();
                 $index->create(options: ['recreate' => true]);
