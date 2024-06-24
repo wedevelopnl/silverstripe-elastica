@@ -21,6 +21,9 @@ class AggregationFactory
         $bool = new BoolQuery();
 
         array_walk($filters, function (Filter $value) use ($bool, $filter) {
+
+            $this->extend('updateAggregationsFilterQuery', $bool);
+
             if ($value === $filter) {
                 return;
             }
