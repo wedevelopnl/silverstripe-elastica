@@ -59,10 +59,10 @@ class FacetIndexItemsList extends ViewableData implements SS_List, Limitable
      * @param int $offset
      * @return FacetIndexItemsList
      */
-    public function limit($limit, $offset = 0)
+    public function limit(?int $length, int $offset = 0): \SilverStripe\ORM\Limitable
     {
         $this->query->setFrom($offset);
-        $this->query->setSize($limit);
+        $this->query->setSize($length);
 
         return $this;
     }
@@ -122,7 +122,7 @@ class FacetIndexItemsList extends ViewableData implements SS_List, Limitable
 
 
     #[\ReturnTypeWillChange]
-    public function getIterator()
+    public function getIterator(): \Traversable
     {
         return new \ArrayIterator($this->toArray());
     }
