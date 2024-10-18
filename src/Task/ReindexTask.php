@@ -50,6 +50,15 @@ final class ReindexTask extends BuildTask
 
                 printf('Index created: %s%s', $index->getName(), PHP_EOL);
 
+                $args = [];
+                if (method_exists($writable, 'getElasticaSettings')) {
+                    $args =  [
+                        'settings' => $writable->getElasticaSettings()
+                    ];
+                }
+
+                $index->create($args, options: ['recreate' => true]);
+
                 $index->setMapping($writable->getElasticaMapping());
 
                 printf('Mapping created%s', PHP_EOL);
