@@ -20,6 +20,7 @@ class Option extends DataObject
         'Distance' => 'Varchar',
         'Label' => 'Varchar',
         'Sort' => 'Int',
+        'IsDefault' => 'Boolean',
     ];
 
     /** @config */
@@ -31,5 +32,24 @@ class Option extends DataObject
     private static array $summary_fields = [
         'Distance',
         'Label',
+        'IsDefault',
     ];
+
+    public function onAfterWrite()
+    {
+        parent::onAfterWrite();
+
+        if ($this->isChanged('IsDefault') && $this->getField('IsDefault')) {
+            // This has some weird logic to work around the fact that we can't have one radio option set in
+            // GridFieldEditableColumns. We're making this option the default and disabling it on all other options
+            // that are linked to this filter that are also not this option.
+            self::get()
+                ->filter(['IsDefault' => true, 'FilterID' => $this->FilterID])
+                ->exclude(['ID' => $this->ID])
+                ->each(static function (Option $option) {
+                    $option->setField('IsDefault', false);
+                    $option->write();
+                });
+        }
+    }
 }

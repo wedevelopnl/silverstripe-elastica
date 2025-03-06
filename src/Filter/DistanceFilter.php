@@ -20,6 +20,7 @@ use SilverStripe\Forms\GridField\GridFieldDataColumns;
 use SilverStripe\Forms\GridField\GridFieldDeleteAction;
 use SilverStripe\Forms\GridField\GridFieldEditButton;
 use SilverStripe\i18n\i18n;
+use SilverStripe\ORM\RelationList;
 use Symbiote\GridFieldExtensions\GridFieldAddNewInlineButton;
 use Symbiote\GridFieldExtensions\GridFieldEditableColumns;
 use Symbiote\GridFieldExtensions\GridFieldOrderableRows;
@@ -68,7 +69,12 @@ class DistanceFilter extends Filter
 
     public function createFormField(): FormField
     {
-        return DistanceField::create($this->Name, $this->Label, $this->Label, $this->Options()->map('Distance', 'Label')->toArray());
+        /** @var RelationList $options */
+        $options = $this->Options();
+        $defaultOption = $options->where(['isDefault' => true])->first();
+        $defaultValue = $defaultOption?->getField('Distance');
+
+        return DistanceField::create($this->Name, $this->Label, $this->Label, $this->Options()->map('Distance', 'Label')->toArray(), $defaultValue);
     }
 
     public function createQuery(): ?AbstractQuery

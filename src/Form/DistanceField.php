@@ -14,7 +14,7 @@ class DistanceField extends FormField
 
     private DropdownField $distanceField;
 
-    public function __construct(string $name, string $addressTitle, string $distanceTitle, array $distances)
+    public function __construct(string $name, string $addressTitle, string $distanceTitle, array $distances, ?string $defaultValue = null)
     {
         $this->addressField = TextField::create(
             $name . '[Address]',
@@ -26,6 +26,10 @@ class DistanceField extends FormField
             $distanceTitle,
             $distances,
         );
+
+        if ($defaultValue) {
+            $this->distanceField->setValue($defaultValue);
+        }
 
         parent::__construct($name);
     }
