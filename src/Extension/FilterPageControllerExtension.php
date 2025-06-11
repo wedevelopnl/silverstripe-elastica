@@ -19,8 +19,8 @@ class FilterPageControllerExtension extends Extension
     public function index(): ViewableData
     {
         $page = $this->getOwner()->data();
-        $filters = $page->Filters()->filter('Enabled', true)->toArray();
-        $sorts = $page->SortOptions()->map('URLSegment', 'Title')->toArray();
+        $filters = $page->hasMethod('Filters') ? $page->Filters()->filter('Enabled', true)->toArray() : [];
+        $sorts = $page->hasMethod('SortOptions') ? $page->SortOptions()->map('URLSegment', 'Title')->toArray() : null;
         $form = FilterForm::create($this->owner, 'FilterForm', $sorts, $filters);
 
         if (method_exists($this->getOwner(), 'updateFilterForm')) {
@@ -35,7 +35,7 @@ class FilterPageControllerExtension extends Extension
 
         $sortValue = $form->Fields()->fieldByName('Sort')?->Value() ?? array_key_first($sorts);
         $sortOption = $sortValue ? $page->SortOptions()->find('URLSegment', $sortValue) : null;
-        if ($sortOption) {
+        if (null !== $sortOption) {
             $list = $list->alterQuery(function (Query $query) use ($sortOption) {
                 $query->setSort($sortOption->toArray());
             });
