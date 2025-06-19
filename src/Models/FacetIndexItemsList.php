@@ -4,13 +4,15 @@ namespace TheWebmen\Elastica\Model;
 
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Core\Injector\Injector;
+use SilverStripe\ORM\Filterable;
 use SilverStripe\ORM\Limitable;
 use SilverStripe\ORM\Map;
+use SilverStripe\ORM\Sortable;
 use SilverStripe\ORM\SS_List;
 use SilverStripe\View\ViewableData;
 use TheWebmen\Elastica\Services\ElasticaService;
 
-class FacetIndexItemsList extends ViewableData implements SS_List, Limitable
+class FacetIndexItemsList extends ViewableData implements SS_List, Limitable, Filterable, Sortable
 {
 
     /**
@@ -188,5 +190,56 @@ class FacetIndexItemsList extends ViewableData implements SS_List, Limitable
     public function offsetUnset(#[LanguageLevelTypeAware(['8.0' => 'mixed'], default: '')] $offset)
     {
         user_error("Can't alter items in a DataList using array-access", E_USER_ERROR);
+    }
+
+    public function canFilterBy($by)
+    {
+        user_error("Unsupported", E_USER_ERROR);
+    }
+
+    public function filter()
+    {
+        user_error("Unsupported", E_USER_ERROR);
+
+    }
+
+    public function filterAny()
+    {
+        user_error("Unsupported", E_USER_ERROR);
+    }
+
+    public function exclude()
+    {
+        user_error("Unsupported", E_USER_ERROR);
+    }
+
+    public function filterByCallback($callback)
+    {
+        user_error("Unsupported", E_USER_ERROR);
+    }
+
+    public function byID($id)
+    {
+        user_error("Unsupported", E_USER_ERROR);
+    }
+
+    public function byIDs($ids)
+    {
+        user_error("Unsupported", E_USER_ERROR);
+    }
+
+    public function canSortBy($by)
+    {
+        user_error("Unsupported", E_USER_ERROR);
+    }
+
+    public function sort()
+    {
+        user_error("Unsupported", E_USER_ERROR);
+    }
+
+    public function reverse()
+    {
+        user_error("Unsupported", E_USER_ERROR);
     }
 }
