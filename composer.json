@@ -7,7 +7,7 @@
       "ext-json": "*",
       "silverstripe/framework": "^5",
       "ruflin/elastica": "^7.1",
-      "symbiote/silverstripe-gridfieldextensions": "^3.4",
+      "symbiote/silverstripe-gridfieldextensions": "^4.0",
       "silverstripe/tagfield": "^2.9"
   },
   "autoload": {
