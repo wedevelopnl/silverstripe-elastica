@@ -5,7 +5,7 @@
   "keywords": ["elastica", "elasticsearch", "facet", "filters"],
   "require": {
       "ext-json": "*",
-      "silverstripe/framework": "^4.11",
+      "silverstripe/framework": "^5",
       "ruflin/elastica": "^7.1",
       "symbiote/silverstripe-gridfieldextensions": "^3.4",
       "silverstripe/tagfield": "^2.9"
