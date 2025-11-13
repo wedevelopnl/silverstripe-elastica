@@ -9,13 +9,15 @@ use Elastica\Query;
 use Elastica\ResultSet;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\ORM\ArrayList;
+use SilverStripe\ORM\Filterable;
 use SilverStripe\ORM\Limitable;
 use SilverStripe\ORM\Map;
+use SilverStripe\ORM\Sortable;
 use SilverStripe\ORM\SS_List;
 use SilverStripe\View\ViewableData;
 use TheWebmen\Elastica\Services\ElasticaService;
 
-final class FacetIndexItemsList extends ViewableData implements SS_List, Limitable
+final class FacetIndexItemsList extends ViewableData implements SS_List, Limitable, Filterable, Sortable
 {
     private Index $index;
 
@@ -167,5 +169,56 @@ final class FacetIndexItemsList extends ViewableData implements SS_List, Limitab
     private function toArrayList(): ArrayList
     {
         return ArrayList::create($this->toArray());
+    }
+
+    public function canFilterBy($by)
+    {
+        user_error("Unsupported", E_USER_ERROR);
+    }
+
+    public function filter()
+    {
+        user_error("Unsupported", E_USER_ERROR);
+
+    }
+
+    public function filterAny()
+    {
+        user_error("Unsupported", E_USER_ERROR);
+    }
+
+    public function exclude()
+    {
+        user_error("Unsupported", E_USER_ERROR);
+    }
+
+    public function filterByCallback($callback)
+    {
+        user_error("Unsupported", E_USER_ERROR);
+    }
+
+    public function byID($id)
+    {
+        user_error("Unsupported", E_USER_ERROR);
+    }
+
+    public function byIDs($ids)
+    {
+        user_error("Unsupported", E_USER_ERROR);
+    }
+
+    public function canSortBy($by)
+    {
+        user_error("Unsupported", E_USER_ERROR);
+    }
+
+    public function sort()
+    {
+        user_error("Unsupported", E_USER_ERROR);
+    }
+
+    public function reverse()
+    {
+        user_error("Unsupported", E_USER_ERROR);
     }
 }
