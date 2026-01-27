@@ -105,14 +105,17 @@ class DistanceFilter extends Filter
         /** @var Geocoder $geocoder */
         $geocoder = Injector::inst()->get(Geocoder::class);
         $query = GeocodeQuery::create($address);
-        
-        if ($this->getLocale()) {
-            $query = $query->withLocale($this->getLocale())
-                ->withData('components', ['country' => $this->getLocale()]);
+
+        if ($locale = $this->getLocale()) {
+            $query = $query->withLocale($locale);
+        }
+
+        if ($country = $this->getCountry()) {
+            $query = $query->withData('components', ['country' => $country]);
         }
 
         $this->extend('updateGeocodeQuery', $query);
-        
+
         $result = $geocoder->geocodeQuery($query);
         $coordinates = $result->first()->getCoordinates();
 
@@ -124,10 +127,23 @@ class DistanceFilter extends Filter
 
     private function getLocale(): ?string
     {
-        $locale = i18n::getData()->langFromLocale(i18n::get_locale());
+        $locale = i18n::get_locale();
 
         $this->extend('updateLocale', $locale);
 
         return $locale;
+    }
+
+    private function getCountry(): ?string
+    {
+        $country = null;
+
+        if ($locale = $this->getLocale()) {
+            $country = i18n::getData()->countryFromLocale($locale);
+        }
+
+        $this->extend('updateCountry', $country);
+
+        return $country;
     }
 }
